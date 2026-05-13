@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المدونة — تقييم GLM-5.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card { transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .post-body p { margin-bottom: 1em; line-height: 1.8; }
+        .tag-active { background: #4f46e5 !important; color: white !important; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Nav -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="#" onclick="showHome()" class="text-xl font-bold text-indigo-600 hover:text-indigo-700">📝 المدونة</a>
+            <div class="flex items-center gap-4">
+                <a href="/project1-viewer.html" class="text-sm text-gray-500 hover:text-gray-700">📁 الكود</a>
+                <a href="/eval.html" class="text-sm text-gray-500 hover:text-gray-700">📊 التقييم</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Info Banner -->
+    <div class="bg-gradient-to-l from-indigo-50 to-purple-50 border-b border-indigo-100">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <p class="text-indigo-800 text-sm">🧠 <strong>مشروع تقييم GLM-5.1</strong> — منظومة مقالات كاملة مع لوحة تحكم، صلاحيات، ورفع صور</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="lg:w-72 shrink-0 space-y-4">
+                <!-- Tags -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="font-bold text-gray-700 mb-3">🏷️ الوسوم</h3>
+                    <div class="flex flex-wrap gap-2" id="tagsContainer"></div>
+                </div>
+
+                <!-- Stats -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="font-bold text-gray-700 mb-3">📊 إحصائيات</h3>
+                    <div class="space-y-2 text-sm text-gray-600" id="statsContainer"></div>
+                </div>
+
+                <!-- Demo Accounts -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="font-bold text-gray-700 mb-3">🔐 حسابات تجريبية</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                            <p class="font-medium text-green-800">👑 أدمن</p>
+                            <p class="text-green-600 text-xs mt-1">admin@blog.test / password</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                            <p class="font-medium text-blue-800">✏️ محرر</p>
+                            <p class="text-blue-600 text-xs mt-1">editor@blog.test / password</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="font-bold text-gray-700 mb-3">✅ الميزات المنجزة</h3>
+                    <ul class="text-xs text-gray-600 space-y-1.5">
+                        <li>✓ CRUD كامل مع Validation</li>
+                        <li>✓ Gates & Policies (Admin/Editor)</li>
+                        <li>✓ Middleware مخصص</li>
+                        <li>✓ Pagination 10/صفحة</li>
+                        <li>✓ فلترة حسب الوسوم</li>
+                        <li>✓ رفع صور لـ storage/app/public</li>
+                        <li>✓ Blade Components</li>
+                        <li>✓ Form Requests منفصلة</li>
+                        <li>✓ واجهة Responsive</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Posts Area -->
+            <div class="flex-1">
+                <!-- Home View -->
+                <div id="homeView">
+                    <div id="postsGrid" class="grid gap-6 md:grid-cols-2"></div>
+                    <div id="emptyState" class="hidden text-center py-20 text-gray-400">
+                        <p class="text-4xl mb-4">📭</p>
+                        <p>لا توجد مقالات لهذا الوسم</p>
+                        <button onclick="clearFilter()" class="mt-4 text-indigo-600 hover:underline text-sm">عرض الكل</button>
+                    </div>
+                </div>
+
+                <!-- Post Detail View -->
+                <div id="postView" class="hidden">
+                    <button onclick="showHome()" class="text-indigo-600 hover:text-indigo-800 text-sm mb-6 inline-block">→ العودة للأرشيف</button>
+                    <div id="postDetail" class="bg-white rounded-xl shadow-sm border overflow-hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-t mt-16 py-6 text-center text-sm text-gray-400">
+        <p>🧠 تقييم GLM-5.1 — المشروع 1: منظومة نشر مقالات مع لوحة تحكم</p>
+    </footer>
+
+    <script>
+    let allPosts = [];
+    let allTags = [];
+    let activeTag = null;
+
+    async function loadData() {
+        const res = await fetch('/blog-data.json');
+        const data = await res.json();
+        allPosts = data.posts;
+        allTags = data.tags;
+        renderTags();
+        renderStats();
+        renderPosts();
+    }
+
+    function renderTags() {
+        const c = document.getElementById('tagsContainer');
+        let html = `<button onclick="clearFilter()" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!activeTag ? 'tag-active' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">الكل</button>`;
+        allTags.forEach(tag => {
+            const isActive = activeTag === tag.slug;
+            html += `<button onclick="filterByTag('${tag.slug}')" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${isActive ? 'tag-active' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}">
+                ${tag.name} <span class="mr-1 text-[10px] opacity-60">(${tag.posts_count})</span>
+            </button>`;
+        });
+        c.innerHTML = html;
+    }
+
+    function renderStats() {
+        const published = allPosts.filter(p => p.status === 'published').length;
+        const drafts = allPosts.filter(p => p.status === 'draft').length;
+        document.getElementById('statsContainer').innerHTML = `
+            <p>📝 إجمالي المقالات: <strong>${allPosts.length}</strong></p>
+            <p>✅ منشورة: <strong class="text-green-600">${published}</strong></p>
+            <p>📝 مسودات: <strong class="text-yellow-600">${drafts}</strong></p>
+            <p>🏷️ وسوم: <strong>${allTags.length}</strong></p>
+        `;
+    }
+
+    function renderPosts() {
+        let filtered = allPosts.filter(p => p.status === 'published');
+        if (activeTag) {
+            filtered = filtered.filter(p => p.tags && p.tags.some(t => t.slug === activeTag));
+        }
+
+        const grid = document.getElementById('postsGrid');
+        const empty = document.getElementById('emptyState');
+
+        if (filtered.length === 0) {
+            grid.classList.add('hidden');
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        grid.classList.remove('hidden');
+        empty.classList.add('hidden');
+
+        grid.innerHTML = filtered.map(post => `
+            <article class="card bg-white rounded-xl shadow-sm border overflow-hidden cursor-pointer" onclick="showPost(${post.id})">
+                <div class="p-5">
+                    <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                        <span>${post.author}</span>
+                        <span>•</span>
+                        <time>${formatDate(post.published_at)}</time>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] bg-green-100 text-green-700 mr-auto">منشور</span>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-900 mb-2">${post.title}</h2>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-4">${stripHtml(post.body).substring(0, 150)}...</p>
+                    ${post.tags && post.tags.length ? `<div class="flex flex-wrap gap-2">${post.tags.map(t => `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-700">${t.name}</span>`).join('')}</div>` : ''}
+                </div>
+            </article>
+        `).join('');
+    }
+
+    function showPost(id) {
+        const post = allPosts.find(p => p.id === id);
+        if (!post) return;
+
+        document.getElementById('homeView').classList.add('hidden');
+        document.getElementById('postView').classList.remove('hidden');
+
+        document.getElementById('postDetail').innerHTML = `
+            ${post.featured_image ? `<img src="${post.featured_image}" class="w-full h-64 object-cover">` : ''}
+            <div class="p-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">${post.title}</h1>
+                <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <span>✍️ ${post.author}</span>
+                    <span>📅 ${formatDate(post.published_at)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">منشور</span>
+                </div>
+                ${post.tags && post.tags.length ? `<div class="flex flex-wrap gap-2 mb-6">${post.tags.map(t => `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">${t.name}</span>`).join('')}</div>` : ''}
+                <div class="border-t pt-6">
+                    <div class="post-body text-gray-700 leading-relaxed">${post.body}</div>
+                </div>
+                <div class="mt-8 p-4 bg-gray-50 rounded-lg text-xs text-gray-500">
+                    <p><strong>slug:</strong> ${post.slug}</p>
+                    <p><strong>status:</strong> ${post.status}</p>
+                    <p><strong>user_id:</strong> ${post.user_id}</p>
+                    <p><strong>created:</strong> ${post.created_at}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function showHome() {
+        document.getElementById('homeView').classList.remove('hidden');
+        document.getElementById('postView').classList.add('hidden');
+        window.scrollTo(0, 0);
+    }
+
+    function filterByTag(slug) {
+        activeTag = slug;
+        renderTags();
+        renderPosts();
+    }
+
+    function clearFilter() {
+        activeTag = null;
+        renderTags();
+        renderPosts();
+    }
+
+    function formatDate(d) {
+        if (!d) return '—';
+        const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+        const date = new Date(d);
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function stripHtml(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+    }
+
+    loadData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+/* styles.css — Dark/Light mode with CSS Variables */
+
+:root[data-theme='dark'] {
+  --color-bg: #0d0d1a;
+  --color-surface: #1a1a2e;
+  --color-border: #2a2a4a;
+  --color-text: #e0e0e0;
+  --color-text-muted: #888;
+  --color-primary: #7c4dff;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+}
+
+:root[data-theme='light'] {
+  --color-bg: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-border: #e0e0e0;
+  --color-text: #1a1a2e;
+  --color-text-muted: #666;
+  --color-primary: #5c35cc;
+  --color-success: #2e7d32;
+  --color-warning: #e65100;
+  --color-danger: #c62828;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'Tajawal', Tahoma, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+  direction: rtl;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+/* Focus styles */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.15);
+}
+
+/* Hover animation */
+.task-item:hover {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 2px 12px rgba(124, 77, 255, 0.1);
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "category": "UML Design",
+    "question": "صمم مخطط Use Case لنظام Laravel لإدارة مطعم — اكتب كود PlantUML ونفذه",
+    "answer": "تم تصميم مخطط Use Case كامل يتضمن:\n• 4 ممثلين: الزبون، النادل، الشيف، المدير\n• 20 Use Case موزعة على 6 حزم\n• 6 علاقات هيكلية (include + extend)\n• كود PlantUML كامل وتم تنفيذه كصورة PNG/SVG",
+    "rating": null,
+    "responseTime": "~45s",
+    "diagramUrl": "/glm-uml-page.html"
+  },
+  {
+    "id": 2,
+    "category": "Full-Stack Development",
+    "question": "تطبيق إدارة مهام — Laravel API + React مع Optimistic UI وDark Mode",
+    "answer": "Backend (Laravel):\n• 6 API Endpoints: GET/POST/PUT/DELETE/PATCH toggle\n• TaskResource + TaskCollection مع meta/links\n• Sanctum SPA Auth\n• Filtering: ?status=done&priority=high&due=today\n• Rate Limiting: 60/min auth, 10/min guest\n• 5 Unit Tests مع RefreshDatabase\n\nFrontend (React + TypeScript):\n• Vite + React (بدون CRA)\n• useReducer مع 9 action types + revert\n• useTasks() custom hook\n• Optimistic UI مع rollback عند فشل API\n• Toast notification للـ errors\n• Dark Mode بـ CSS Variables + localStorage\n• axios instance + CORS + interceptors\n\n20+ ملف — كل المتطلبات مُلباة ✅",
+    "rating": null,
+    "responseTime": "~90s",
+    "projectUrl": "/glm-project3.html"
+  }
+]

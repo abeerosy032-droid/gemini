@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط Use Case - مطعم (Gemini)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#0a0a1a] text-white min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-8 border-b border-white/10 pb-6">
+            <h1 class="text-3xl font-bold text-emerald-400 mb-2">💎 مخطط Use Case (نظام مطعم)</h1>
+            <p class="text-gray-400">تم توليد المخطط بناءً على طلبك لتقييم Gemini.</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-6 mb-8 text-center">
+            <h2 class="text-xl font-bold mb-4 text-gray-200">صورة المخطط (SVG)</h2>
+            <div id="uml-container" class="bg-white p-4 rounded-lg inline-block w-full overflow-x-auto min-h-[400px] flex items-center justify-center">
+                <span class="text-gray-500">جاري تحميل المخطط...</span>
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4 text-emerald-300">كود PlantUML (المصدر)</h2>
+            <pre class="bg-black/50 p-4 rounded-lg overflow-x-auto text-left text-sm text-gray-300 font-mono" dir="ltr" id="puml-code">@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam handwritten false
+skinparam backgroundColor transparent
+skinparam usecase {
+  BackgroundColor #D5E8D4
+  BorderColor #82B366
+  ArrowColor #2F693A
+}
+skinparam actor {
+  BackgroundColor #DAE8FC
+  BorderColor #6C8EBF
+}
+
+actor "الزبون" as Customer
+actor "النادل" as Waiter
+actor "الطاهي" as Chef
+actor "مدير النظام" as Admin
+
+rectangle "نظام إدارة المطعم (Laravel)" {
+  usecase "تصفح قائمة الطعام" as UC1
+  usecase "إنشاء طلب جديد" as UC2
+  usecase "تعديل الطلب" as UC3
+  usecase "إلغاء الطلب" as UC4
+  usecase "تتبع حالة الطلب" as UC5
+  usecase "الدفع وإصدار الفاتورة" as UC6
+  usecase "إدارة الطاولات" as UC7
+  usecase "تأكيد استلام الطلب" as UC8
+  usecase "إدارة قائمة الطعام" as UC9
+  usecase "إدارة الموظفين" as UC10
+  usecase "عرض التقارير والإحصائيات" as UC11
+  
+  Customer --> UC1
+  Customer --> UC2
+  Customer --> UC3
+  Customer --> UC4
+  Customer --> UC5
+  Customer --> UC6
+  
+  Waiter --> UC2
+  Waiter --> UC5
+  Waiter --> UC6
+  Waiter --> UC7
+  
+  Chef --> UC8
+  Chef --> UC5
+  
+  Admin --> UC9
+  Admin --> UC10
+  Admin --> UC11
+}
+@enduml</pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const pumlCode = document.getElementById("puml-code").textContent;
+            
+            try {
+                // Encode the code
+                const encoded = plantumlEncoder.encode(pumlCode);
+                
+                // Create image URL
+                const url = "https://www.plantuml.com/plantuml/svg/" + encoded;
+                
+                // Set the image
+                const container = document.getElementById("uml-container");
+                container.innerHTML = `<img src="${url}" alt="Restaurant Use Case UML" class="max-w-full h-auto mx-auto" />`;
+            } catch (e) {
+                document.getElementById("uml-container").innerHTML = `<div class="text-red-500">حدث خطأ أثناء توليد المخطط: ${e.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تقييم Kimi-k2.6 Cloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#0a0a1a] text-white min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-10">
+        <div class="flex items-center justify-between mb-10">
+            <div class="flex items-center gap-4">
+                <span class="text-4xl">🌙</span>
+                <div>
+                    <h1 class="text-2xl font-bold text-purple-300">لوحة تقييم Kimi-k2.6 Cloud</h1>
+                    <p class="text-gray-500 text-sm">تحديث مباشر للأسئلة والإجابات</p>
+                </div>
+            </div>
+            <a href="/kimi" class="text-gray-400 hover:text-white transition text-sm">→ عودة لصفحة Kimi</a>
+        </div>
+
+        <div id="results-container" class="space-y-6">
+            <!-- سيتم حقن النتائج هنا عبر JS -->
+            <div class="text-center py-20 text-gray-500">
+                <div class="text-5xl mb-4">⏳</div>
+                <p>في انتظار أول سؤال...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchResults() {
+            try {
+                // نضيف طابع زمني لتجنب الكاش
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/kimi-eval/results/eval-data.json?t=${timestamp}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('results-container');
+                
+                if (!data.results || data.results.length === 0) {
+                    return; // احتفظ برسالة الانتظار
+                }
+                
+                let html = '';
+                
+                // عكس المصفوفة لعرض الأحدث أولاً
+                [...data.results].reverse().forEach((item, index) => {
+                    const statusColor = item.status === 'success' ? 'text-green-400' : 
+                                      (item.status === 'error' ? 'text-red-400' : 'text-yellow-400');
+                    const statusIcon = item.status === 'success' ? '✅' : 
+                                     (item.status === 'error' ? '❌' : '⚠️');
+                                     
+                    const answerHtml = item.answer ? 
+                        `<div class="mt-4 p-4 bg-black/40 rounded-lg text-gray-300 whitespace-pre-wrap font-mono text-sm border border-white/5">${escapeHtml(item.answer)}</div>` : 
+                        '<div class="mt-4 p-4 text-gray-500 text-sm italic">في انتظار الإجابة...</div>';
+                        
+                    html += `
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-purple-500/30 transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-bold text-white flex-1"><span class="text-purple-400 mr-2">Q${data.results.length - index}:</span> ${escapeHtml(item.question)}</h3>
+                            <span class="${statusColor} text-sm font-bold bg-white/5 px-3 py-1 rounded-full flex items-center gap-1">${statusIcon} ${item.status || 'unknown'}</span>
+                        </div>
+                        ${answerHtml}
+                        <div class="mt-4 text-xs text-gray-500 flex justify-between">
+                            <span>${item.timestamp || 'غير متوفر'}</span>
+                            ${item.time_taken ? `<span>⏱️ ${item.time_taken}s</span>` : ''}
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+            }
+        }
+        
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // جلب البيانات كل 3 ثواني
+        fetchResults();
+        setInterval(fetchResults, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "category": "Laravel — مشروع كامل",
+    "question": "المشروع 1: منظومة نشر مقالات مع لوحة تحكم — CRUD كامل، Policies، Middleware، Blade Components، Pagination، رفع صور، Validation",
+    "answer": "✅ تم إنجاز المشروع بالكامل (17 ملف):\n\n• Post/Tag/User Models مع $fillable و Relationships صحيحة\n• 3 Migrations (posts, tags, post_tag pivot)\n• PostController كامل CRUD مع Scopepublished وفلترة وسوم\n• StorePostRequest / UpdatePostRequest مع validation عربي\n• PostPolicy مع before() للأدمن — المحرر يعدد مقالاته فقط\n• EnsureDashboardAccess Middleware مخصص\n• Blade Components: <x-alert> مع logic داخلي، <x-post-card>، <x-tag-badge> مع فلتر\n• أرشيف مع Pagination 10/صفحة + فلترة وسوم\n• رفع صور لـ storage/app/public عبر Storage::disk('public')\n• واجهة Responsive بـ Tailwind CDN\n\nالنموذج فهم الفرق بين storage/app و storage/app/public، استخدم $fillable بشكل صحيح، و Blade Components تحتوي logic داخلي وليس مجرد HTML.",
+    "timestamp": "2026-05-07 13:21 UTC",
+    "responseTime": "~8 min",
+    "score": "ممتاز"
+  }
+]

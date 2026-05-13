@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Fashion - متجر أزياء</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Google Fonts (Tajawal for elegant Arabic) -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        [v-cloak] { display: none !important; }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Hide Number Input Arrows */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #0f172a;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* Vue Transitions */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+        .slide-enter-active, .slide-leave-active { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-enter-from, .slide-leave-to { transform: translateX(-100%); }
+
+        .modal-enter-active, .modal-leave-active { transition: all 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
+
+        .list-enter-active, .list-leave-active { transition: all 0.5s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(30px); }
+        .list-leave-active { position: absolute; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#0f172a', accent: '#38bdf8', danger: '#ef4444', success: '#10b981' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-gray-800 antialiased overflow-x-hidden">
+
+<div id="app" v-cloak>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
+                <i class="bi bi-gem"></i> GEMINI <span class="font-light">FASHION</span>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <!-- Wishlist Toggle -->
+                <button @click="store.toggleWishlistDrawer()" class="relative text-gray-600 hover:text-danger transition-colors">
+                    <i class="bi bi-heart text-2xl"></i>
+                    <span v-if="store.wishlistCount > 0" class="absolute -top-1 -right-2 bg-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {{ store.wishlistCount }}
+                    </span>
+                </button>
+
+                <!-- Cart Toggle -->
+                <button @click="store.isCartOpen = true" class="relative text-gray-600 hover:text-primary transition-colors">
+                    <i class="bi bi-bag text-2xl"></i>
+                    <span v-if="store.cartCount > 0" class="absolute -top-1 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {{ store.cartCount }}
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+        
+        <!-- Sidebar Filters -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+                <h3 class="text-lg font-bold mb-6 border-b pb-2 flex justify-between items-center">
+                    الفلاتر
+                    <button @click="resetFilters" class="text-sm text-gray-400 hover:text-primary font-normal">إعادة ضبط</button>
+                </h3>
+
+                <!-- Colors -->
+                <div class="mb-6">
+                    <h4 class="font-medium text-sm mb-3 text-gray-500 uppercase tracking-wider">اللون</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <button v-for="color in availableColors" :key="color.value" 
+                                @click="toggleColor(color.value)"
+                                :class="['w-8 h-8 rounded-full border-2 transition-transform hover:scale-110', selectedColors.includes(color.value) ? 'border-primary scale-110' : 'border-transparent shadow-sm']"
+                                :style="{ backgroundColor: color.hex }"
+                                :title="color.label">
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sizes -->
+                <div class="mb-6">
+                    <h4 class="font-medium text-sm mb-3 text-gray-500 uppercase tracking-wider">المقاس</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <button v-for="size in availableSizes" :key="size"
+                                @click="toggleSize(size)"
+                                :class="['min-w-[40px] py-1 px-2 rounded border transition-colors text-sm font-medium', selectedSizes.includes(size) ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300']">
+                            {{ size }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Price Slider -->
+                <div class="mb-6">
+                    <h4 class="font-medium text-sm mb-3 text-gray-500 uppercase tracking-wider flex justify-between">
+                        <span>السعر</span>
+                        <span class="text-primary font-bold">{{ priceRange }} ر.س</span>
+                    </h4>
+                    <input type="range" min="0" max="500" step="10" v-model="priceRange">
+                    <div class="flex justify-between text-xs text-gray-400 mt-2">
+                        <span>0 ر.س</span>
+                        <span>500 ر.س</span>
+                    </div>
+                </div>
+
+                <!-- Rating -->
+                <div>
+                    <h4 class="font-medium text-sm mb-3 text-gray-500 uppercase tracking-wider">التقييم الأدنى</h4>
+                    <div class="flex items-center gap-1 cursor-pointer" @click="minRating = minRating === 5 ? 0 : minRating + 1">
+                        <i v-for="i in 5" :key="i" :class="['bi', i <= minRating ? 'bi-star-fill text-yellow-400' : 'bi-star text-gray-300', 'text-lg transition-colors']" @click.stop="minRating = i"></i>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <section class="flex-1">
+            <div class="flex justify-between items-end mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">التشكيلة الجديدة</h1>
+                <span class="text-gray-500 text-sm">عرض {{ filteredProducts.length }} منتج</span>
+            </div>
+
+            <div v-if="filteredProducts.length === 0" class="text-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
+                <i class="bi bi-emoji-frown text-5xl text-gray-300 mb-4 block"></i>
+                <h3 class="text-xl font-medium text-gray-500">لا توجد منتجات تطابق الفلاتر المحددة.</h3>
+            </div>
+
+            <transition-group name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+                <div v-for="product in filteredProducts" :key="product.id" class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 flex flex-col h-full">
+                    
+                    <!-- Image Wrapper -->
+                    <div class="relative h-72 overflow-hidden bg-gray-100 cursor-pointer" @click="store.openQuickView(product)">
+                        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110">
+                        
+                        <!-- Badges -->
+                        <div class="absolute top-3 right-3 flex flex-col gap-2">
+                            <span v-if="product.isNew" class="bg-primary text-white text-xs font-bold px-2 py-1 rounded shadow-sm">جديد</span>
+                            <span v-if="product.originalPrice" class="bg-danger text-white text-xs font-bold px-2 py-1 rounded shadow-sm">خصم</span>
+                        </div>
+
+                        <!-- Wishlist Overlay Button -->
+                        <button @click.stop="store.toggleWishlist(product.id)" class="absolute top-3 left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md text-gray-400 hover:text-danger transition-colors z-10">
+                            <i :class="['bi', store.wishlist.includes(product.id) ? 'bi-heart-fill text-danger' : 'bi-heart']"></i>
+                        </button>
+
+                        <!-- Quick Add Overlay (Hover) -->
+                        <div class="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                            <button @click.stop="store.addToCart(product)" class="w-full bg-white/90 backdrop-blur text-primary font-bold py-2 rounded-xl shadow hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                                <i class="bi bi-cart-plus"></i> أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="p-4 flex flex-col flex-1">
+                        <div class="text-xs text-gray-400 mb-1">{{ product.category }}</div>
+                        <h3 class="font-bold text-lg mb-2 text-gray-800 line-clamp-1 cursor-pointer hover:text-primary" @click="store.openQuickView(product)">{{ product.name }}</h3>
+                        
+                        <div class="flex items-center gap-1 mb-3">
+                            <i v-for="i in 5" :key="i" :class="['bi text-xs', i <= Math.floor(product.rating) ? 'bi-star-fill text-yellow-400' : (i - product.rating <= 0.5 ? 'bi-star-half text-yellow-400' : 'bi-star text-gray-300')]"></i>
+                            <span class="text-xs text-gray-400 ms-1">({{ product.rating }})</span>
+                        </div>
+
+                        <div class="mt-auto flex items-end justify-between">
+                            <div class="flex flex-col">
+                                <span v-if="product.originalPrice" class="text-sm text-gray-400 line-through">{{ product.originalPrice }} ر.س</span>
+                                <span class="text-xl font-bold text-primary">{{ product.price }} <span class="text-sm font-normal">ر.س</span></span>
+                            </div>
+                            
+                            <!-- Available Colors Dots -->
+                            <div class="flex gap-1">
+                                <span v-for="c in product.colors" :key="c" class="w-3 h-3 rounded-full border border-gray-200" :style="{ backgroundColor: getColorHex(c) }"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </transition-group>
+        </section>
+    </main>
+
+    <!-- Quick View Modal -->
+    <transition name="fade">
+        <div v-if="store.isQuickViewOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="store.isQuickViewOpen = false"></div>
+            
+            <transition name="modal" appear>
+                <div v-if="store.isQuickViewOpen" class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row z-10">
+                    <button @click="store.isQuickViewOpen = false" class="absolute top-4 left-4 z-20 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+
+                    <div class="md:w-1/2 h-64 md:h-auto bg-gray-100">
+                        <img :src="store.selectedProduct?.image" class="w-full h-full object-cover">
+                    </div>
+                    
+                    <div class="md:w-1/2 p-8 overflow-y-auto drawer-scroll">
+                        <div class="uppercase tracking-widest text-xs text-gray-400 mb-2 font-bold">{{ store.selectedProduct?.category }}</div>
+                        <h2 class="text-3xl font-bold mb-4">{{ store.selectedProduct?.name }}</h2>
+                        
+                        <div class="text-2xl font-bold text-primary mb-6">
+                            {{ store.selectedProduct?.price }} ر.س
+                            <span v-if="store.selectedProduct?.originalPrice" class="text-base text-gray-400 line-through font-normal ms-2">{{ store.selectedProduct?.originalPrice }} ر.س</span>
+                        </div>
+
+                        <p class="text-gray-600 mb-8 leading-relaxed">
+                            تصميم عصري يجمع بين الأناقة والراحة. مصنوع من أجود الخامات لضمان استدامة وجودة تدوم طويلاً. مثالي للإطلالات اليومية والمناسبات الخاصة.
+                        </p>
+
+                        <hr class="my-6 border-gray-100">
+
+                        <div class="flex items-center gap-4 mb-8">
+                            <label class="font-bold w-16">المقاس:</label>
+                            <div class="flex gap-2">
+                                <button v-for="size in store.selectedProduct?.sizes" :key="size" class="w-10 h-10 border border-gray-200 rounded-lg hover:border-primary focus:border-primary focus:bg-primary focus:text-white transition-colors">
+                                    {{ size }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button @click="store.addToCart(store.selectedProduct); store.isQuickViewOpen = false" class="flex-1 bg-primary text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 transform active:scale-95">
+                                <i class="bi bi-cart"></i> إضافة للسلة
+                            </button>
+                            <button @click="store.toggleWishlist(store.selectedProduct?.id)" class="w-14 bg-gray-50 border border-gray-200 text-gray-500 rounded-xl hover:text-danger transition-colors flex justify-center items-center text-xl">
+                                <i :class="['bi', store.wishlist.includes(store.selectedProduct?.id) ? 'bi-heart-fill text-danger' : 'bi-heart']"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </div>
+    </transition>
+
+    <!-- Cart Drawer (Slide-in) -->
+    <transition name="fade">
+        <div v-if="store.isCartOpen" class="fixed inset-0 z-50">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="store.isCartOpen = false"></div>
+        </div>
+    </transition>
+
+    <transition name="slide">
+        <div v-if="store.isCartOpen" class="fixed top-0 left-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col" dir="rtl">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="bi bi-bag"></i> حقيبة التسوق <span class="bg-primary text-white text-xs px-2 py-1 rounded-full ms-2">{{ store.cartCount }}</span>
+                </h2>
+                <button @click="store.isCartOpen = false" class="text-gray-400 hover:text-gray-800 text-xl transition-colors"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <!-- Checkout Steps Indicator -->
+            <div class="px-6 pt-6 pb-2" v-if="store.cartCount > 0">
+                <div class="flex items-center justify-between relative">
+                    <div class="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 -z-10 transform -translate-y-1/2"></div>
+                    
+                    <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-white', store.checkoutStep >= 1 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400']">1</div>
+                    <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-white', store.checkoutStep >= 2 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400']">2</div>
+                    <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-white', store.checkoutStep >= 3 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400']">3</div>
+                </div>
+                <div class="flex justify-between text-xs font-medium text-gray-500 mt-2">
+                    <span>السلة</span>
+                    <span>التوصيل</span>
+                    <span>الدفع</span>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto drawer-scroll p-6">
+                <!-- Step 1: Cart Items -->
+                <div v-if="store.checkoutStep === 1">
+                    <div v-if="store.cartCount === 0" class="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                        <i class="bi bi-cart-x text-6xl"></i>
+                        <p class="text-lg">سلتك فارغة حالياً</p>
+                        <button @click="store.isCartOpen = false" class="mt-4 px-6 py-2 border border-gray-300 rounded-full text-sm text-gray-600 hover:border-primary hover:text-primary transition-colors">مواصلة التسوق</button>
+                    </div>
+
+                    <div v-else class="space-y-6">
+                        <transition-group name="list">
+                            <div v-for="item in store.cart" :key="item.id" class="flex gap-4 bg-white border border-gray-100 p-3 rounded-2xl relative group">
+                                <img :src="item.image" class="w-20 h-24 object-cover rounded-xl bg-gray-100">
+                                <div class="flex-1 flex flex-col justify-between">
+                                    <div class="flex justify-between">
+                                        <h4 class="font-bold text-sm text-gray-800 line-clamp-2 pr-4">{{ item.name }}</h4>
+                                        <button @click="store.removeFromCart(item.id)" class="text-gray-300 hover:text-danger transition-colors absolute top-3 left-3">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-primary font-bold">{{ item.price }} ر.س</div>
+                                    <div class="flex items-center gap-3 bg-gray-50 w-fit rounded-lg border border-gray-200 px-2 py-1">
+                                        <button @click="store.updateQuantity(item.id, -1)" class="text-gray-500 hover:text-primary"><i class="bi bi-dash"></i></button>
+                                        <span class="text-sm font-bold w-4 text-center">{{ item.quantity }}</span>
+                                        <button @click="store.updateQuantity(item.id, 1)" class="text-gray-500 hover:text-primary"><i class="bi bi-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
+                </div>
+
+                <!-- Step 2: Shipping -->
+                <div v-if="store.checkoutStep === 2" class="space-y-4 fade-enter-active">
+                    <h3 class="font-bold text-lg mb-4">معلومات التوصيل</h3>
+                    <input type="text" placeholder="الاسم الكامل" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+                    <input type="tel" placeholder="رقم الهاتف" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+                    <textarea placeholder="العنوان التفصيلي" rows="3" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"></textarea>
+                </div>
+
+                <!-- Step 3: Payment -->
+                <div v-if="store.checkoutStep === 3" class="space-y-4 fade-enter-active">
+                    <h3 class="font-bold text-lg mb-4">طريقة الدفع</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-4 border border-primary bg-primary/5 rounded-xl cursor-pointer">
+                            <input type="radio" name="payment" checked class="accent-primary w-4 h-4">
+                            <i class="bi bi-credit-card text-primary text-xl"></i>
+                            <span class="font-bold">البطاقة الائتمانية</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border border-gray-200 hover:border-gray-300 rounded-xl cursor-pointer transition-colors">
+                            <input type="radio" name="payment" class="accent-primary w-4 h-4">
+                            <i class="bi bi-cash text-gray-500 text-xl"></i>
+                            <span class="font-medium text-gray-600">الدفع عند الاستلام</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t bg-gray-50 p-6" v-if="store.cartCount > 0">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-500 font-medium">الإجمالي:</span>
+                    <span class="text-2xl font-bold text-primary">{{ store.cartTotal }} ر.س</span>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button v-if="store.checkoutStep > 1" @click="store.checkoutStep--" class="w-14 border border-gray-300 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition-colors flex justify-center items-center">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                    
+                    <button v-if="store.checkoutStep < 3" @click="store.checkoutStep++" class="flex-1 bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 transition-transform active:scale-95 text-lg">
+                        متابعة الطلب
+                    </button>
+                    
+                    <button v-if="store.checkoutStep === 3" @click="completeOrder" class="flex-1 bg-success text-white font-bold py-4 rounded-xl shadow-lg shadow-success/30 hover:bg-emerald-600 transition-transform active:scale-95 text-lg flex justify-center items-center gap-2">
+                        <i class="bi bi-check-circle"></i> إتمام الدفع
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+</div>
+
+<script>
+    const { createApp, ref, computed, reactive } = Vue;
+
+    // Simple Global Store using Vue Reactive (No Pinia CDN issues)
+    const store = reactive({
+        cart: [],
+        wishlist: [1, 4], // pre-populate for demo
+        isCartOpen: false,
+        isQuickViewOpen: false,
+        selectedProduct: null,
+        checkoutStep: 1,
+        
+        get cartTotal() {
+            return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
+        },
+        get cartCount() {
+            return this.cart.reduce((count, item) => count + item.quantity, 0);
+        },
+        get wishlistCount() {
+            return this.wishlist.length;
+        },
+        
+        addToCart(product) {
+            const item = this.cart.find(i => i.id === product.id);
+            if (item) {
+                item.quantity++;
+            } else {
+                this.cart.push({ ...product, quantity: 1 });
+            }
+            this.isCartOpen = true;
+            this.checkoutStep = 1;
+        },
+        removeFromCart(productId) {
+            this.cart = this.cart.filter(item => item.id !== productId);
+            if (this.cart.length === 0) this.checkoutStep = 1;
+        },
+        updateQuantity(productId, change) {
+            const item = this.cart.find(i => i.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) this.removeFromCart(productId);
+            }
+        },
+        toggleWishlist(productId) {
+            if (this.wishlist.includes(productId)) {
+                this.wishlist = this.wishlist.filter(id => id !== productId);
+            } else {
+                this.wishlist.push(productId);
+            }
+        },
+        openQuickView(product) {
+            this.selectedProduct = product;
+            this.isQuickViewOpen = true;
+        },
+        toggleWishlistDrawer() {
+            alert("تنبيه: تم الضغط على قائمة الأمنيات. (يمكن تطويرها لعرض نافذة جانبية مشابهة للسلة)");
+        }
+    });
+
+    const app = createApp({
+        setup() {
+            // Mock Data
+            const products = ref([
+                { id: 1, name: 'جاكيت جينز كلاسيكي', category: 'جواكت', price: 189, originalPrice: 250, rating: 4.8, colors: ['blue', 'black'], sizes: ['M', 'L', 'XL'], isNew: false, image: 'https://picsum.photos/seed/jacket1/400/500' },
+                { id: 2, name: 'تيشيرت قطن بياقة دائرية', category: 'تيشيرتات', price: 65, originalPrice: null, rating: 4.2, colors: ['white', 'gray'], sizes: ['S', 'M', 'L'], isNew: true, image: 'https://picsum.photos/seed/tee1/400/500' },
+                { id: 3, name: 'فستان صيفي مزين بالزهور', category: 'فساتين', price: 210, originalPrice: null, rating: 4.9, colors: ['red', 'yellow'], sizes: ['S', 'M'], isNew: true, image: 'https://picsum.photos/seed/dress1/400/500' },
+                { id: 4, name: 'حقيبة يد جلدية فاخرة', category: 'إكسسوارات', price: 340, originalPrice: 400, rating: 4.5, colors: ['black', 'brown'], sizes: ['One Size'], isNew: false, image: 'https://picsum.photos/seed/bag1/400/500' },
+                { id: 5, name: 'حذاء رياضي مريح', category: 'أحذية', price: 280, originalPrice: null, rating: 4.7, colors: ['white', 'black'], sizes: ['40', '41', '42'], isNew: false, image: 'https://picsum.photos/seed/shoe1/400/500' },
+                { id: 6, name: 'قميص أكسفورد رسمي', category: 'قمصان', price: 120, originalPrice: 150, rating: 4.1, colors: ['blue', 'white'], sizes: ['M', 'L', 'XL', 'XXL'], isNew: false, image: 'https://picsum.photos/seed/shirt1/400/500' },
+                { id: 7, name: 'نظارة شمسية بعدسات مستقطبة', category: 'إكسسوارات', price: 95, originalPrice: null, rating: 3.8, colors: ['black', 'gold'], sizes: ['One Size'], isNew: true, image: 'https://picsum.photos/seed/glasses1/400/500' },
+                { id: 8, name: 'بنطال تشينو كاجوال', category: 'بناطيل', price: 145, originalPrice: 180, rating: 4.6, colors: ['beige', 'navy'], sizes: ['30', '32', '34'], isNew: false, image: 'https://picsum.photos/seed/pants1/400/500' },
+                { id: 9, name: 'قبعة رياضية كلاسيكية', category: 'إكسسوارات', price: 45, originalPrice: null, rating: 4.0, colors: ['red', 'black', 'navy'], sizes: ['One Size'], isNew: true, image: 'https://picsum.photos/seed/hat1/400/500' },
+            ]);
+
+            // Filter Configuration
+            const availableColors = [
+                { value: 'black', hex: '#000000', label: 'أسود' },
+                { value: 'white', hex: '#ffffff', label: 'أبيض' },
+                { value: 'blue', hex: '#3b82f6', label: 'أزرق' },
+                { value: 'red', hex: '#ef4444', label: 'أحمر' },
+                { value: 'beige', hex: '#d4d4d8', label: 'بيج' },
+            ];
+            const availableSizes = ['S', 'M', 'L', 'XL', 'One Size', '40', '42'];
+
+            // Filter State
+            const selectedColors = ref([]);
+            const selectedSizes = ref([]);
+            const priceRange = ref(500);
+            const minRating = ref(0);
+
+            // Filter Logic Methods
+            const toggleColor = (color) => {
+                const idx = selectedColors.value.indexOf(color);
+                if (idx > -1) selectedColors.value.splice(idx, 1);
+                else selectedColors.value.push(color);
+            };
+
+            const toggleSize = (size) => {
+                const idx = selectedSizes.value.indexOf(size);
+                if (idx > -1) selectedSizes.value.splice(idx, 1);
+                else selectedSizes.value.push(size);
+            };
+
+            const resetFilters = () => {
+                selectedColors.value = [];
+                selectedSizes.value = [];
+                priceRange.value = 500;
+                minRating.value = 0;
+            };
+
+            // Computed Filtered Products
+            const filteredProducts = computed(() => {
+                return products.value.filter(p => {
+                    const matchColor = selectedColors.value.length === 0 || p.colors.some(c => selectedColors.value.includes(c));
+                    const matchSize = selectedSizes.value.length === 0 || p.sizes.some(s => selectedSizes.value.includes(s));
+                    const matchPrice = p.price <= priceRange.value;
+                    const matchRating = p.rating >= minRating.value;
+                    return matchColor && matchSize && matchPrice && matchRating;
+                });
+            });
+
+            // Helpers
+            const getColorHex = (colorName) => {
+                const match = availableColors.find(c => c.value === colorName);
+                return match ? match.hex : colorName;
+            };
+
+            const completeOrder = () => {
+                alert('تم استلام طلبك بنجاح! شكراً لتسوقك معنا.');
+                store.cart = [];
+                store.isCartOpen = false;
+                store.checkoutStep = 1;
+            };
+
+            return {
+                store,
+                products,
+                availableColors,
+                availableSizes,
+                selectedColors,
+                selectedSizes,
+                priceRange,
+                minRating,
+                filteredProducts,
+                toggleColor,
+                toggleSize,
+                resetFilters,
+                getColorHex,
+                completeOrder
+            };
+        }
+    });
+
+    app.mount('#app');
+</script>
+
+</body>
+</html>

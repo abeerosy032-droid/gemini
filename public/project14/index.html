@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إنفوجرافيك SVG تفاعلية - المشروع 14</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #6c63ff;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #6c63ff, #e91e63);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .header p { color: #aaa; font-size: 1.1em; }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(108,99,255,0.2);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+        .chart-card:hover {
+            border-color: #6c63ff;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(108,99,255,0.2);
+        }
+        .chart-title {
+            font-size: 1.3em;
+            color: #6c63ff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            max-width: 250px;
+            border: 1px solid rgba(108,99,255,0.5);
+        }
+        .tooltip.visible { opacity: 1; }
+        .tooltip-title {
+            font-weight: bold;
+            color: #6c63ff;
+            margin-bottom: 5px;
+        }
+        .tooltip-value {
+            font-size: 1.2em;
+            color: #fff;
+        }
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .legend-item:hover {
+            background: rgba(108,99,255,0.2);
+            border-color: #6c63ff;
+        }
+        .legend-item.hidden {
+            opacity: 0.4;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .legend-label {
+            font-size: 0.85em;
+        }
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-card {
+            animation: fadeIn 0.6s ease-out;
+        }
+        .chart-card:nth-child(1) { animation-delay: 0.1s; }
+        .chart-card:nth-child(2) { animation-delay: 0.2s; }
+        .chart-card:nth-child(3) { animation-delay: 0.3s; }
+        .chart-card:nth-child(4) { animation-delay: 0.4s; }
+        /* SVG element animations */
+        .chart-element {
+            transition: all 0.3s ease;
+        }
+        .chart-element:hover {
+            filter: brightness(1.2);
+        }
+        .chart-element.hidden {
+            opacity: 0.1;
+        }
+        /* Bar chart animation */
+        .bar-rect {
+            animation: growUp 0.8s ease-out forwards;
+            transform-origin: bottom;
+        }
+        @keyframes growUp {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+        /* Donut chart animation */
+        .donut-segment {
+            animation: rotateIn 1s ease-out forwards;
+            transform-origin: center;
+        }
+        @keyframes rotateIn {
+            from { stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: var(--target-offset); }
+        }
+        /* Line chart animation */
+        .line-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 1.5s ease-out forwards;
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+        .map-country {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .map-country:hover {
+            filter: brightness(1.3);
+        }
+        @media (max-width: 768px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 لوحة إنفوجرافيك SVG تفاعلية</h1>
+        <p>المشروع 14 — رسوم بيانية خالصة بـ SVG + Vanilla JS</p>
+    </div>
+
+    <div class="dashboard">
+        <!-- Donut Chart -->
+        <div class="chart-card">
+            <div class="chart-title">🍩 توزيع الميزانية</div>
+            <div class="chart-container" id="donutChart"></div>
+            <div class="legend" id="donutLegend"></div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="chart-card">
+            <div class="chart-title">📊 الأداء الشهري</div>
+            <div class="chart-container" id="barChart"></div>
+            <div class="legend" id="barLegend"></div>
+        </div>
+
+        <!-- Line Chart -->
+        <div class="chart-card">
+            <div class="chart-title">📈 اتجاه النمو</div>
+            <div class="chart-container" id="lineChart"></div>
+            <div class="legend" id="lineLegend"></div>
+        </div>
+
+        <!-- World Map -->
+        <div class="chart-card">
+            <div class="chart-title">🌍 التوزيع العالمي</div>
+            <div class="chart-container" id="mapChart"></div>
+            <div class="legend" id="mapLegend"></div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-title"></div>
+        <div class="tooltip-value"></div>
+    </div>
+
+    <script>
+        // Data
+        const budgetData = [
+            { label: 'التسويق', value: 35, color: '#6c63ff' },
+            { label: 'التطوير', value: 30, color: '#e91e63' },
+            { label: 'التشغيل', value: 20, color: '#00bcd4' },
+            { label: 'البحث', value: 10, color: '#ff9800' },
+            { label: 'أخرى', value: 5, color: '#4caf50' }
+        ];
+
+        const monthlyData = [
+            { label: 'يناير', value: 65, color: '#6c63ff' },
+            { label: 'فبراير', value: 78, color: '#e91e63' },
+            { label: 'مارس', value: 52, color: '#00bcd4' },
+            { label: 'أبريل', value: 91, color: '#ff9800' },
+            { label: 'مايو', value: 73, color: '#4caf50' },
+            { label: 'يونيو', value: 85, color: '#9c27b0' }
+        ];
+
+        const growthData = [
+            { label: 'يناير', value: 20 },
+            { label: 'فبراير', value: 35 },
+            { label: 'مارس', value: 45 },
+            { label: 'أبريل', value: 55 },
+            { label: 'مايو', value: 70 },
+            { label: 'يونيو', value: 90 }
+        ];
+
+        const countryData = [
+            { name: 'الولايات المتحدة', value: 95, color: '#6c63ff', path: 'M 150 80 L 200 70 L 250 90 L 220 130 L 160 120 Z' },
+            { name: 'الصين', value: 88, color: '#e91e63', path: 'M 380 100 L 440 90 L 460 140 L 400 150 L 370 120 Z' },
+            { name: 'ألمانيا', value: 75, color: '#00bcd4', path: 'M 280 60 L 320 55 L 330 85 L 290 90 Z' },
+            { name: 'اليابان', value: 82, color: '#ff9800', path: 'M 480 110 L 520 100 L 530 130 L 490 140 Z' },
+            { name: 'البرازيل', value: 68, color: '#4caf50', path: 'M 180 200 L 230 190 L 240 230 L 190 240 Z' }
+        ];
+
+        // Tooltip
+        const tooltip = document.getElementById('tooltip');
+        const tooltipTitle = tooltip.querySelector('.tooltip-title');
+        const tooltipValue = tooltip.querySelector('.tooltip-value');
+
+        function showTooltip(e, title, value) {
+            tooltipTitle.textContent = title;
+            tooltipValue.textContent = value;
+            tooltip.classList.add('visible');
+
+            // Handle edge cases
+            const rect = tooltip.getBoundingClientRect();
+            let x = e.clientX + 15;
+            let y = e.clientY + 15;
+
+            // Prevent going off right edge
+            if (x + rect.width > window.innerWidth) {
+                x = e.clientX - rect.width - 15;
+            }
+
+            // Prevent going off bottom edge
+            if (y + rect.height > window.innerHeight) {
+                y = e.clientY - rect.height - 15;
+            }
+
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        // Donut Chart
+        function createDonutChart() {
+            const container = document.getElementById('donutChart');
+            const legendContainer = document.getElementById('donutLegend');
+            const total = budgetData.reduce((sum, d) => sum + d.value, 0);
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 300 300');
+
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 100;
+            const strokeWidth = 40;
+
+            let currentAngle = -90;
+
+            budgetData.forEach((item, index) => {
+                const percentage = item.value / total;
+                const angle = percentage * 360;
+                const circumference = 2 * Math.PI * radius;
+                const dashArray = (percentage * circumference).toFixed(2);
+                const dashOffset = circumference - (percentage * circumference);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', centerX);
+                circle.setAttribute('cy', centerY);
+                circle.setAttribute('r', radius);
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', item.color);
+                circle.setAttribute('stroke-width', strokeWidth);
+                circle.setAttribute('stroke-dasharray', `${dashArray} ${circumference}`);
+                circle.setAttribute('stroke-dashoffset', dashOffset);
+                circle.setAttribute('transform', `rotate(${currentAngle} ${centerX} ${centerY})`);
+                circle.classList.add('chart-element', 'donut-segment');
+                circle.style.setProperty('--target-offset', dashOffset);
+
+                // Accessibility
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${item.label}: ${item.value}%`;
+                circle.appendChild(title);
+
+                const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+                desc.textContent = `شريحة دائري ${item.label} تمثل ${item.value}% من الميزانية الكلية`;
+                circle.appendChild(desc);
+
+                circle.addEventListener('mouseenter', (e) => showTooltip(e, item.label, `${item.value}%`));
+                circle.addEventListener('mousemove', (e) => showTooltip(e, item.label, `${item.value}%`));
+                circle.addEventListener('mouseleave', hideTooltip);
+
+                svg.appendChild(circle);
+                currentAngle += angle;
+            });
+
+            // Center text
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', centerX);
+            text.setAttribute('y', centerY);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('fill', '#fff');
+            text.setAttribute('font-size', '24');
+            text.setAttribute('font-weight', 'bold');
+            text.textContent = '100%';
+            svg.appendChild(text);
+
+            container.appendChild(svg);
+
+            // Legend
+            budgetData.forEach((item, index) => {
+                const legendItem = createLegendItem(item, index, 'donut');
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        // Bar Chart
+        function createBarChart() {
+            const container = document.getElementById('barChart');
+            const legendContainer = document.getElementById('barLegend');
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 400 300');
+
+            const padding = 40;
+            const chartWidth = 400 - padding * 2;
+            const chartHeight = 300 - padding * 2;
+            const barWidth = chartWidth / monthlyData.length - 10;
+            const maxValue = Math.max(...monthlyData.map(d => d.value));
+
+            monthlyData.forEach((item, index) => {
+                const barHeight = (item.value / maxValue) * chartHeight;
+                const x = padding + index * (barWidth + 10);
+                const y = padding + chartHeight - barHeight;
+
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth);
+                rect.setAttribute('height', barHeight);
+                rect.setAttribute('fill', item.color);
+                rect.setAttribute('rx', 4);
+                rect.classList.add('chart-element', 'bar-rect');
+                rect.style.animationDelay = `${index * 0.1}s`;
+
+                // Accessibility
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${item.label}: ${item.value}`;
+                rect.appendChild(title);
+
+                const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+                desc.textContent = `شريط ${item.label} بقيمة ${item.value}`;
+                rect.appendChild(desc);
+
+                rect.addEventListener('mouseenter', (e) => showTooltip(e, item.label, item.value));
+                rect.addEventListener('mousemove', (e) => showTooltip(e, item.label, item.value));
+                rect.addEventListener('mouseleave', hideTooltip);
+
+                svg.appendChild(rect);
+
+                // Label
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x + barWidth / 2);
+                label.setAttribute('y', padding + chartHeight + 20);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#aaa');
+                label.setAttribute('font-size', '12');
+                label.textContent = item.label;
+                svg.appendChild(label);
+            });
+
+            container.appendChild(svg);
+
+            // Legend
+            monthlyData.forEach((item, index) => {
+                const legendItem = createLegendItem(item, index, 'bar');
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        // Line Chart
+        function createLineChart() {
+            const container = document.getElementById('lineChart');
+            const legendContainer = document.getElementById('lineLegend');
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 400 300');
+
+            const padding = 40;
+            const chartWidth = 400 - padding * 2;
+            const chartHeight = 300 - padding * 2;
+            const maxValue = Math.max(...growthData.map(d => d.value));
+
+            // Create gradient
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 'lineGradient');
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '0%');
+            gradient.setAttribute('y2', '100%');
+
+            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('stop-color', '#6c63ff');
+            stop1.setAttribute('stop-opacity', '0.3');
+
+            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '100%');
+            stop2.setAttribute('stop-color', '#6c63ff');
+            stop2.setAttribute('stop-opacity', '0');
+
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+
+            // Create path
+            const points = growthData.map((item, index) => {
+                const x = padding + (index / (growthData.length - 1)) * chartWidth;
+                const y = padding + chartHeight - (item.value / maxValue) * chartHeight;
+                return `${x},${y}`;
+            });
+
+            const pathData = `M ${points.join(' L ')}`;
+
+            // Fill area
+            const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const areaData = `${pathData} L ${padding + chartWidth},${padding + chartHeight} L ${padding},${padding + chartHeight} Z`;
+            areaPath.setAttribute('d', areaData);
+            areaPath.setAttribute('fill', 'url(#lineGradient)');
+            areaPath.classList.add('chart-element');
+            svg.appendChild(areaPath);
+
+            // Line
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('d', pathData);
+            line.setAttribute('fill', 'none');
+            line.setAttribute('stroke', '#6c63ff');
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('stroke-linecap', 'round');
+            line.setAttribute('stroke-linejoin', 'round');
+            line.classList.add('chart-element', 'line-path');
+
+            // Accessibility
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            title.textContent = 'اتجاه النمو خلال 6 أشهر';
+            line.appendChild(title);
+
+            const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+            desc.textContent = 'خط بياني يوضح اتجاه النمو من 20 في يناير إلى 90 في يونيو';
+            line.appendChild(desc);
+
+            svg.appendChild(line);
+
+            // Points
+            growthData.forEach((item, index) => {
+                const x = padding + (index / (growthData.length - 1)) * chartWidth;
+                const y = padding + chartHeight - (item.value / maxValue) * chartHeight;
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', 5);
+                circle.setAttribute('fill', '#6c63ff');
+                circle.classList.add('chart-element');
+
+                circle.addEventListener('mouseenter', (e) => showTooltip(e, item.label, item.value));
+                circle.addEventListener('mousemove', (e) => showTooltip(e, item.label, item.value));
+                circle.addEventListener('mouseleave', hideTooltip);
+
+                svg.appendChild(circle);
+
+                // Label
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', padding + chartHeight + 20);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#aaa');
+                label.setAttribute('font-size', '12');
+                label.textContent = item.label;
+                svg.appendChild(label);
+            });
+
+            container.appendChild(svg);
+
+            // Legend
+            const legendItem = createLegendItem({ label: 'النمو', color: '#6c63ff' }, 0, 'line');
+            legendContainer.appendChild(legendItem);
+        }
+
+        // World Map
+        function createMapChart() {
+            const container = document.getElementById('mapChart');
+            const legendContainer = document.getElementById('mapLegend');
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 600 300');
+
+            // Background
+            const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bg.setAttribute('width', '100%');
+            bg.setAttribute('height', '100%');
+            bg.setAttribute('fill', 'rgba(108,99,255,0.05)');
+            svg.appendChild(bg);
+
+            countryData.forEach((item, index) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', item.path);
+                path.setAttribute('fill', item.color);
+                path.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+                path.setAttribute('stroke-width', '2');
+                path.classList.add('chart-element', 'map-country');
+
+                // Accessibility
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${item.name}: ${item.value}`;
+                path.appendChild(title);
+
+                const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+                desc.textContent = `دولة ${item.name} بقيمة ${item.value}`;
+                path.appendChild(desc);
+
+                path.addEventListener('mouseenter', (e) => showTooltip(e, item.name, item.value));
+                path.addEventListener('mousemove', (e) => showTooltip(e, item.name, item.value));
+                path.addEventListener('mouseleave', hideTooltip);
+
+                svg.appendChild(path);
+            });
+
+            container.appendChild(svg);
+
+            // Legend
+            countryData.forEach((item, index) => {
+                const legendItem = createLegendItem(item, index, 'map');
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        // Legend Item
+        function createLegendItem(item, index, chartType) {
+            const div = document.createElement('div');
+            div.className = 'legend-item';
+            div.dataset.index = index;
+            div.dataset.chart = chartType;
+
+            const color = document.createElement('div');
+            color.className = 'legend-color';
+            color.style.backgroundColor = item.color;
+
+            const label = document.createElement('span');
+            label.className = 'legend-label';
+            label.textContent = item.label;
+
+            div.appendChild(color);
+            div.appendChild(label);
+
+            div.addEventListener('click', () => toggleLegendItem(div, chartType, index));
+
+            return div;
+        }
+
+        function toggleLegendItem(legendItem, chartType, index) {
+            legendItem.classList.toggle('hidden');
+
+            const elements = document.querySelectorAll(`[data-chart="${chartType}"][data-index="${index}"]`);
+            elements.forEach(el => {
+                el.classList.toggle('hidden');
+            });
+
+            // Toggle chart elements
+            const chartElements = document.querySelectorAll(`.chart-element[data-index="${index}"]`);
+            chartElements.forEach(el => {
+                el.classList.toggle('hidden');
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createDonutChart();
+            createBarChart();
+            createLineChart();
+            createMapChart();
+        });
+    </script>
+</body>
+</html>

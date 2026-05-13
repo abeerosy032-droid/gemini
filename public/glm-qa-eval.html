@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 تقييم GLM-5.1 — أسئلة وأجوبة</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #1a0533 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 2px solid #7c3aed;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            color: #c4b5fd;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header .subtitle {
+            color: #a78bfa;
+            font-size: 1.1rem;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: #111128;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 0.5rem 1rem;
+        }
+        
+        .stat .num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #7c3aed;
+        }
+        
+        .stat .label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .category-title {
+            font-size: 1.3rem;
+            color: #a78bfa;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #2d1b69;
+        }
+        
+        .qa-card {
+            background: #13132a;
+            border: 1px solid #2d1b69;
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .qa-card:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+        }
+        
+        .qa-card .question-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .qa-card .question-header:hover {
+            background: #1a1a3a;
+        }
+        
+        .qa-card .q-num {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .qa-card .q-text {
+            flex: 1;
+            font-size: 1rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        .qa-card .toggle-icon {
+            color: #7c3aed;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        
+        .qa-card.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .qa-card .answer-body {
+            display: none;
+            padding: 0 1.2rem 1.2rem;
+            border-top: 1px solid #2d1b69;
+        }
+        
+        .qa-card.open .answer-body {
+            display: block;
+        }
+        
+        .answer-body .section {
+            margin-top: 1rem;
+        }
+        
+        .answer-body .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #7c3aed;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .answer-body .answer-text {
+            color: #cbd5e1;
+            line-height: 1.8;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+        
+        .rating-section {
+            margin-top: 1rem;
+            padding-top: 0.8rem;
+            border-top: 1px dashed #2d1b69;
+        }
+        
+        .rating-section .rating-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stars {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .stars .star {
+            font-size: 1.4rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: all 0.2s;
+        }
+        
+        .stars .star:hover,
+        .stars .star.active {
+            opacity: 1;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #2d1b69;
+            color: #c4b5fd;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin: 0.2rem;
+        }
+        
+        .add-btn {
+            display: block;
+            width: 100%;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .empty-state .emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #555;
+            font-size: 0.85rem;
+            border-top: 1px solid #1a1a3a;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.4rem; }
+            .stats-bar { gap: 1rem; }
+            .stat .num { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🧠 تقييم GLM-5.1</h1>
+    <div class="subtitle">أسئلة وأجوبة — اختبارات مباشرة</div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <!-- Filled by JS -->
+</div>
+
+<div class="container" id="qaList">
+    <!-- Filled by JS -->
+</div>
+
+<button class="add-btn" onclick="location.href='/'">🏠 العودة للموزع الرئيسي</button>
+
+<div class="footer">
+    🧠 GLM-5.1 Evaluation Lab — Powered by OpenClaw
+</div>
+
+<script>
+const DATA_URL = 'glm-qa-eval-data.json';
+
+async function loadData() {
+    try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error('No data file');
+        const data = await res.json();
+        renderData(data);
+    } catch (e) {
+        document.getElementById('qaList').innerHTML = `
+            <div class="empty-state">
+                <div class="emoji">📝</div>
+                <div>لا توجد أسئلة بعد</div>
+                <div style="margin-top:0.5rem; font-size:0.9rem;">أرسل أسئلة التقييم وسيتم عرضها هنا تلقائياً</div>
+            </div>
+        `;
+        renderStats({ total: 0, categories: [] });
+    }
+}
+
+function renderStats(data) {
+    const bar = document.getElementById('statsBar');
+    const total = data.questions ? data.questions.length : 0;
+    const categories = data.questions ? [...new Set(data.questions.map(q => q.category || 'عام'))] : [];
+    bar.innerHTML = `
+        <div class="stat"><div class="num">${total}</div><div class="label">سؤال</div></div>
+        <div class="stat"><div class="num">${categories.length}</div><div class="label">تصنيف</div></div>
+        <div class="stat"><div class="num" style="color:#22c55e">⬤</div><div class="label">GLM-5.1</div></div>
+    `;
+}
+
+function renderData(data) {
+    const container = document.getElementById('qaList');
+    renderStats(data);
+    
+    if (!data.questions || data.questions.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="emoji">📝</div>
+                <div>لا توجد أسئلة بعد</div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Group by category
+    const groups = {};
+    data.questions.forEach((q, i) => {
+        const cat = q.category || 'عام';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push({ ...q, idx: i + 1 });
+    });
+    
+    let html = '';
+    for (const [cat, questions] of Object.entries(groups)) {
+        html += `<div class="category-title">${getCategoryIcon(cat)} ${cat}</div>`;
+        questions.forEach(q => {
+            html += `
+                <div class="qa-card" id="card-${q.idx}" onclick="toggleCard(${q.idx})">
+                    <div class="question-header">
+                        <div class="q-num">${q.idx}</div>
+                        <div class="q-text">${escapeHtml(q.question)}</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="answer-body">
+                        ${q.tags && q.tags.length ? `<div style="margin-bottom:0.8rem">${q.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                        <div class="section">
+                            <div class="section-title">🧠 إجابة GLM-5.1</div>
+                            <div class="answer-text">${formatAnswer(q.answer)}</div>
+                        </div>
+                        ${q.notes ? `
+                        <div class="section">
+                            <div class="section-title">📋 ملاحظات</div>
+                            <div class="answer-text" style="color:#f59e0b">${escapeHtml(q.notes)}</div>
+                        </div>` : ''}
+                        <div class="rating-section">
+                            <div class="rating-label">⭐ تقييمك لهذه الإجابة:</div>
+                            <div class="stars" id="stars-${q.idx}">
+                                ${[1,2,3,4,5].map(s => `<span class="star" data-val="${s}" onclick="event.stopPropagation(); rate(${q.idx},${s})">★</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    container.innerHTML = html;
+    
+    // Restore ratings
+    const ratings = JSON.parse(localStorage.getItem('glm-qa-ratings') || '{}');
+    for (const [idx, rating] of Object.entries(ratings)) {
+        highlightStars(idx, rating);
+    }
+}
+
+function getCategoryIcon(cat) {
+    const icons = {
+        'برمجة': '💻',
+        'رياضيات': '🔢',
+        'منطق': '🧩',
+        'لغة': '📝',
+        'عام': '📌',
+        'تصميم': '🎨',
+        'أمن': '🔒',
+        'بيانات': '📊',
+    };
+    return icons[cat] || '📌';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatAnswer(text) {
+    if (!text) return '<em style="color:#666">لم يتم الرد بعد</em>';
+    // Simple markdown-like bold
+    let formatted = escapeHtml(text);
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return formatted;
+}
+
+function toggleCard(idx) {
+    const card = document.getElementById(`card-${idx}`);
+    card.classList.toggle('open');
+}
+
+function rate(qIdx, rating) {
+    const ratings = JSON.parse(localStorage.getItem('glm-qa-ratings') || '{}');
+    ratings[qIdx] = rating;
+    localStorage.setItem('glm-qa-ratings', JSON.stringify(ratings));
+    highlightStars(qIdx, rating);
+}
+
+function highlightStars(qIdx, rating) {
+    const stars = document.querySelectorAll(`#stars-${qIdx} .star`);
+    stars.forEach(star => {
+        const val = parseInt(star.dataset.val);
+        star.classList.toggle('active', val <= rating);
+        star.style.color = val <= rating ? '#facc15' : '#444';
+    });
+}
+
+loadData();
+</script>
+
+</body>
+</html>

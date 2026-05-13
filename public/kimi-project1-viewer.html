@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌙 Kimi K2.6 Cloud — عارض الكود | Project 1</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<style>body{font-family:'Tajawal',sans-serif;background:#0a0a1a;color:#e2e8f0}code{font-family:'JetBrains Mono',monospace}.sidebar::-webkit-scrollbar{width:6px}.sidebar::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:3px}</style>
+</head>
+<body class="min-h-screen">
+<nav class="border-b border-white/5 bg-[#0a0a1a]/95 backdrop-blur sticky top-0 z-50">
+<div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<a href="http://34.136.31.84:8080/kimi" class="text-purple-400 hover:text-purple-300 transition text-sm">← Kimi</a>
+<span class="text-gray-600">|</span>
+<a href="http://34.136.31.84:8080/" class="text-gray-500 hover:text-white transition text-sm">الموزع</a>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-2xl">🌙</span>
+<h1 class="text-xl font-bold text-purple-300">Kimi K2.6 Cloud</h1>
+<span class="text-gray-600">|</span>
+<span class="text-sm text-gray-500">Project 1 — منظومة نشر مقالات</span>
+</div>
+</div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+<!-- Header -->
+<div class="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-500/20 rounded-2xl p-6 mb-8">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-2xl font-bold text-purple-300 mb-2">منظومة نشر مقالات مع لوحة تحكم</h2>
+<p class="text-gray-400 text-sm">Laravel Blog System with CRUD, Auth, Policies, Form Requests, Components</p>
+</div>
+<div class="flex gap-3">
+<a href="kimi-project1-preview.html" target="_blank" class="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
+<span>👁️</span> معاينة حية
+</a>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-4 mt-6">
+<div class="bg-white/5 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-purple-400">18</div><div class="text-xs text-gray-500 mt-1">ملف</div></div>
+<div class="bg-white/5 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-purple-400">5</div><div class="text-xs text-gray-500 mt-1">موديل + Policy</div></div>
+<div class="bg-white/5 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-purple-400">3</div><div class="text-xs text-gray-500 mt-1">Blade Components</div></div>
+<div class="bg-white/5 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-purple-400">5</div><div class="text-xs text-gray-500 mt-1">CRUD + Archive</div></div>
+</div>
+</div>
+
+<!-- Layout -->
+<div class="flex gap-6">
+<!-- Sidebar -->
+<div class="w-80 flex-shrink-0">
+<div class="bg-[#111122] border border-white/5 rounded-2xl p-5 sticky top-24">
+<h3 class="font-bold text-purple-300 mb-4 flex items-center gap-2"><span>📁</span> ملفات المشروع</h3>
+<div class="space-y-3 text-sm max-h-[70vh] overflow-y-auto sidebar pr-2" id="fileTree">
+</div>
+</div>
+</div>
+
+<!-- Code Viewer -->
+<div class="flex-1">
+<div class="bg-[#111122] border border-white/5 rounded-2xl overflow-hidden">
+<div class="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-[#0f0f1c]">
+<div class="flex items-center gap-3">
+<span id="fileIcon" class="text-xl">📄</span>
+<h3 id="fileName" class="font-bold text-white font-mono text-sm">اختر ملف</h3>
+<span id="fileLines" class="text-xs text-gray-600 font-mono"></span>
+</div>
+<div class="flex items-center gap-2">
+<span id="fileType" class="text-xs bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full font-mono">php</span>
+<span id="fileSize" class="text-xs text-gray-600 font-mono"></span>
+</div>
+</div>
+<div class="p-5 overflow-x-auto">
+<pre class="text-sm"><code id="codeBlock" class="language-php">// اختر ملف من القائمة لعرض محتواه</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const files = {
+'app/Models/Post.php':`<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
+
+class Post extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title', 'body', 'slug', 'published_at',
+        'status', 'featured_image', 'user_id',
+    ];
+
+    protected $casts = [
+        'published_at' => 'datetime',
+    ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($post) {
+            if (empty($post->slug)) {
+                $post->slug = Str::slug($post->title);
+            }
+        });
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published')
+                     ->whereNotNull('published_at')
+                     ->where('published_at', '<=', now());
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published'
+            && $this->published_at
+            && $this->published_at <= now();
+    }
+}`,
+'app/Models/Tag.php':`<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
+
+class Tag extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['name', 'slug'];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($tag) {
+            if (empty($tag->slug)) {
+                $tag->slug = Str::slug($tag->name);
+            }
+        });
+    }
+
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class);
+    }
+}`,
+'app/Http/Controllers/PostController.php':`<?php
+namespace App\Http\Controllers;
+use App\Models\Post;
+use App\Models\Tag;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
+
+class PostController extends Controller
+{
+    public function archive(Request $request)
+    {
+        $query = Post::with(['user', 'tags'])
+            ->where('status', 'published')
+            ->orderBy('published_at', 'desc');
+
+        if ($request->has('tag')) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->where('slug', $request->tag);
+            });
+        }
+
+        $posts = $query->paginate(10)->withQueryString();
+        $tags = Tag::withCount('posts')
+            ->orderBy('posts_count', 'desc')->get();
+
+        return view('posts.archive', compact('posts', 'tags'));
+    }
+
+    public function index()
+    {
+        Gate::authorize('viewAny', Post::class);
+        $posts = Post::with(['user', 'tags'])
+            ->orderBy('created_at', 'desc')->paginate(15);
+        return view('dashboard.posts.index', compact('posts'));
+    }
+
+    public function create()
+    {
+        Gate::authorize('create', Post::class);
+        $tags = Tag::all();
+        return view('dashboard.posts.create', compact('tags'));
+    }
+
+    public function store(StorePostRequest $request)
+    {
+        Gate::authorize('create', Post::class);
+        $validated = $request->validated();
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request
+                ->file('featured_image')->store('posts', 'public');
+        }
+        $validated['user_id'] = auth()->id();
+        $post = Post::create($validated);
+        $post->tags()->sync($validated['tags'] ?? []);
+        return redirect()->route('dashboard.posts.index')
+            ->with('success', 'تم إنشاء المقال بنجاح');
+    }
+
+    public function show(Post $post)
+    {
+        return view('posts.show', compact('post'));
+    }
+
+    public function edit(Post $post)
+    {
+        Gate::authorize('update', $post);
+        $tags = Tag::all();
+        return view('dashboard.posts.edit', compact('post', 'tags'));
+    }
+
+    public function update(UpdatePostRequest $request, Post $post)
+    {
+        Gate::authorize('update', $post);
+        $validated = $request->validated();
+        if ($request->hasFile('featured_image')) {
+            if ($post->featured_image) {
+                Storage::disk('public')->delete($post->featured_image);
+            }
+            $validated['featured_image'] = $request
+                ->file('featured_image')->store('posts', 'public');
+        }
+        $post->update($validated);
+        $post->tags()->sync($validated['tags'] ?? []);
+        return redirect()->route('dashboard.posts.index')
+            ->with('success', 'تم تحديث المقال بنجاح');
+    }
+
+    public function destroy(Post $post)
+    {
+        Gate::authorize('delete', $post);
+        if ($post->featured_image) {
+            Storage::disk('public')->delete($post->featured_image);
+        }
+        $post->tags()->detach();
+        $post->delete();
+        return redirect()->route('dashboard.posts.index')
+            ->with('success', 'تم حذف المقال بنجاح');
+    }
+}`,
+'app/Policies/PostPolicy.php':`<?php
+namespace App\Policies;
+use App\Models\Post;
+use App\Models\User;
+
+class PostPolicy
+{
+    public function viewAny(User $user): bool { return true; }
+    public function view(User $user, Post $post): bool { return true; }
+
+    public function create(User $user): bool
+    {
+        return in_array($user->role, ['admin', 'editor']);
+    }
+
+    public function update(User $user, Post $post): bool
+    {
+        if ($user->role === 'admin') return true;
+        return $user->role === 'editor' && $post->user_id === $user->id;
+    }
+
+    public function delete(User $user, Post $post): bool
+    {
+        if ($user->role === 'admin') return true;
+        return $user->role === 'editor' && $post->user_id === $user->id;
+    }
+
+    public function publish(User $user): bool
+    {
+        return $user->role === 'admin';
+    }
+}`,
+'app/Http/Requests/StorePostRequest.php':`<?php
+namespace App\Http\Requests;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StorePostRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'slug' => 'required|string|max:255|unique:posts,slug',
+            'status' => 'required|in:draft,published',
+            'published_at' => 'nullable|date',
+            'featured_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'slug.unique' => 'الرابط المختصر مستخدم مسبقاً.',
+            'featured_image.image' => 'الملف يجب أن يكون صورة صالحة.',
+            'featured_image.max' => 'حجم الصورة يجب ألا يتجاوز 2 ميجابايت.',
+        ];
+    }
+}`,
+'app/Http/Requests/UpdatePostRequest.php':`<?php
+namespace App\Http\Requests;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdatePostRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        $postId = $this->route('post')?->id ?? $this->route('post');
+        return [
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'slug' => [
+                'required', 'string', 'max:255',
+                Rule::unique('posts', 'slug')->ignore($postId),
+            ],
+            'status' => 'required|in:draft,published',
+            'published_at' => 'nullable|date',
+            'featured_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+        ];
+    }
+}`,
+'database/migrations/2025_01_15_000001_create_posts_table.php':`<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->text('body');
+            $table->string('slug')->unique();
+            $table->timestamp('published_at')->nullable();
+            $table->enum('status', ['draft', 'published'])->default('draft');
+            $table->string('featured_image')->nullable();
+            $table->timestamps();
+            $table->index('status');
+            $table->index('published_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};`,
+'database/migrations/2025_01_15_000002_create_tags_table.php':`<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('tags', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tags');
+    }
+};`,
+'database/migrations/2025_01_15_000003_create_post_tag_table.php':`<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('post_tag', function (Blueprint $table) {
+            $table->foreignId('post_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+            $table->primary(['post_id', 'tag_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('post_tag');
+    }
+};`,
+'routes/web.php':`<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PostController;
+
+Route::get('/blog', [PostController::class, 'archive'])->name('posts.archive');
+
+Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::resource('posts', PostController::class);
+});
+
+Route::get('/', function () {
+    return redirect('/blog');
+});
+
+Auth::routes();`,
+'resources/views/components/alert.blade.php':`<div class="alert alert-{{ $type }}" role="alert">
+    <span class="alert-icon">{{ $icon() }}</span>
+    <span class="alert-message">{{ $message ?? $slot }}</span>
+</div>`,
+'resources/views/components/post-card.blade.php':`<div class="post-card {{ $featured ? 'post-card-featured' : '' }}">
+    @if($post->featured_image)
+        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" class="post-image">
+    @endif
+    <div class="post-content">
+        <h3 class="post-title">
+            <a href="{{ route('posts.archive', $post->slug) }}">{{ $post->title }}</a>
+        </h3>
+        <p class="post-excerpt">{{ Str::limit(strip_tags($post->body), 150) }}</p>
+        <div class="post-meta">
+            <span>{{ $post->published_at->format('Y-m-d') }}</span>
+            <div class="post-tags">
+                @foreach($post->tags as $tag)
+                    <x-tag-badge :tag="$tag" />
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>`,
+'resources/views/components/tag-badge.blade.php':`<span class="tag-badge" style="background: {{ $tag->color ?? '#6366f1' }};">
+    {{ $tag->name }}
+</span>`,
+'resources/views/posts/archive.blade.php':`@extends('layouts.app')
+
+@section('content')
+<div class="archive-container">
+    <h1>📰 أرشيف المقالات</h1>
+
+    <div class="tag-filter">
+        <span>تصفية حسب الوسم:</span>
+        @foreach($tags as $tag)
+            <a href="?tag={{ $tag->slug }}" class="filter-tag {{ request('tag') == $tag->slug ? 'active' : '' }}">
+                {{ $tag->name }}
+            </a>
+        @endforeach
+    </div>
+
+    @if(session('success'))
+        <x-alert type="success" :message="session('success')" />
+    @endif
+
+    <div class="posts-grid">
+        @forelse($posts as $post)
+            <x-post-card :post="$post" :featured="$loop->first && !request('tag')" />
+        @empty
+            <p>لا توجد مقالات.</p>
+        @endforelse
+    </div>
+
+    {{ $posts->links() }}
+</div>
+@endsection`,
+'resources/views/posts/show.blade.php':`@extends('layouts.app')
+
+@section('content')
+<article class="post-full">
+    @if($post->featured_image)
+        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}">
+    @endif
+    <h1>{{ $post->title }}</h1>
+    <div class="post-meta">
+        <span>بواسطة {{ $post->user->name }}</span>
+        <span>{{ $post->published_at->format('Y-m-d') }}</span>
+    </div>
+    <div class="post-body">{!! $post->body !!}</div>
+    <div class="post-tags">
+        @foreach($post->tags as $tag)
+            <x-tag-badge :tag="$tag" />
+        @endforeach
+    </div>
+</article>
+@endsection`
+};
+
+const treeStructure = {
+'app':{icon:'🧩',files:{'Models':{icon:'🗃️',files:{'Post.php':'📝','Tag.php':'🏷️'}},'Http':{icon:'🌐',files:{'Controllers':{icon:'🎮',files:{'PostController.php':'🎯'}},'Requests':{icon:'📋',files:{'StorePostRequest.php':'✏️','UpdatePostRequest.php':'🔄'}}},'Policies':{icon:'🛡️',files:{'PostPolicy.php':'🔐'}}}},
+'database':{icon:'🗄️',files:{'migrations':{icon:'📊',files:{'2025_01_15_000001_create_posts_table.php':'📄','2025_01_15_000002_create_tags_table.php':'🏷️','2025_01_15_000003_create_post_tag_table.php':'🔗'}}}},
+'resources/views':{icon:'🎨',files:{'components':{icon:'🧱',files:{'alert.blade.php':'⚠️','post-card.blade.php':'🎴','tag-badge.blade.php':'🏷️'}},'posts':{icon:'📰',files:{'archive.blade.php':'📁','show.blade.php':'👁️'}}}},
+'routes':{icon:'🛤️',files:{'web.php':'🌐'}}
+};
+
+let currentFile = 'app/Models/Post.php';
+
+function renderTree(tree, parentPath='', level=0){
+    let html = '';
+    for(const [name, data] of Object.entries(tree)){
+        const path = parentPath ? parentPath+'/'+name : name;
+        if(typeof data === 'string'){
+            const isActive = path === currentFile;
+            html += '<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg cursor-pointer transition '+(isActive?'bg-purple-500/20 text-purple-300':'hover:bg-white/5 text-gray-400')+'" style="padding-right:'+(level*16+8)+'px" onclick="showFile(\''+path+'\')">';
+            html += '<span>'+data+'</span><span class="text-xs truncate">'+name+'</span></div>';
+        } else {
+            html += '<div class="mb-1"><div class="flex items-center gap-2 py-1.5 px-2 text-gray-500 font-medium" style="padding-right:'+(level*16+8)+'px">';
+            html += '<span>'+data.icon+'</span><span class="text-xs">'+name+'</span></div>';
+            html += '<div>'+renderTree(data.files, parentPath?parentPath+'/'+name:name, level+1)+'</div></div>';
+        }
+    }
+    return html;
+}
+
+function showFile(path){
+    currentFile = path;
+    const code = files[path];
+    if(!code) return;
+    document.getElementById('fileName').textContent = path;
+    const lines = code.split('\n').length;
+    document.getElementById('fileLines').textContent = lines + ' سطر';
+    document.getElementById('fileSize').textContent = (code.length/1024).toFixed(1) + ' KB';
+    const ext = path.split('.').pop();
+    document.getElementById('fileType').textContent = ext;
+    document.getElementById('codeBlock').textContent = code;
+    document.getElementById('codeBlock').className = 'language-' + (ext==='php'?'php':'blade');
+    Prism.highlightElement(document.getElementById('codeBlock'));
+    document.getElementById('fileTree').innerHTML = renderTree(treeStructure);
+}
+
+document.getElementById('fileTree').innerHTML = renderTree(treeStructure);
+showFile(currentFile);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "files": [
+    "index.html",
+    "style.css",
+    "js/main.js",
+    "js/api.js",
+    "js/ui.js",
+    "js/storage.js",
+    "js/charts.js"
+  ],
+  "description": "Global Weather Dashboard"
+}

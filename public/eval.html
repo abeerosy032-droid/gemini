@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم GLM-5.1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid #2a2a4a;
+        }
+        .header h1 { color: #00d4ff; font-size: 2em; margin-bottom: 8px; }
+        .header p { color: #888; font-size: 1.1em; }
+        .stats {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            background: #1a1a2e;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid #2a2a4a;
+        }
+        .stat .num { font-size: 1.8em; color: #00d4ff; font-weight: bold; }
+        .stat .label { font-size: 0.85em; color: #888; }
+        .results { max-width: 900px; margin: 0 auto; }
+        .card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a4a;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); border-color: #00d4ff33; }
+        .card .q-num {
+            display: inline-block;
+            background: #00d4ff22;
+            color: #00d4ff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+        .card .question {
+            font-size: 1.15em;
+            color: #fff;
+            margin-bottom: 16px;
+            line-height: 1.7;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .card .answer {
+            background: #0f0f1a;
+            padding: 16px;
+            border-radius: 12px;
+            line-height: 1.9;
+            color: #ccc;
+            white-space: pre-wrap;
+        }
+        .card .meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .card .category {
+            display: inline-block;
+            background: #2a1a3e;
+            color: #b388ff;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        .empty {
+            text-align: center;
+            padding: 60px;
+            color: #555;
+            font-size: 1.2em;
+        }
+        .empty .emoji { font-size: 3em; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 تقييم GLM-5.1</h1>
+        <p>نتائج الأسئلة والاختبارات</p>
+        <div class="stats">
+            <div class="stat"><div class="num" id="totalQ">0</div><div class="label">سؤال</div></div>
+            <div class="stat"><div class="num" id="totalCat">0</div><div class="label">تصنيف</div></div>
+        </div>
+    </div>
+    <div class="results" id="results">
+        <div class="empty">
+            <div class="emoji">⏳</div>
+            <p>في انتظار الأسئلة...</p>
+        </div>
+    </div>
+
+    <script>
+        // Load results from JSON
+        async function loadResults() {
+            try {
+                const res = await fetch('results/data.json');
+                const data = await res.json();
+                renderResults(data);
+            } catch(e) {
+                // No results yet
+            }
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('results');
+            document.getElementById('totalQ').textContent = data.length;
+            const cats = new Set(data.map(d => d.category).filter(Boolean));
+            document.getElementById('totalCat').textContent = cats.size;
+
+            container.innerHTML = data.map((item, i) => `
+                <div class="card">
+                    <span class="q-num">سؤال #${i + 1}</span>
+                    ${item.category ? `<span class="category">${item.category}</span>` : ''}
+                    <div class="question">${item.question}</div>
+                    <div class="answer">${item.answer}</div>
+                    <div class="meta">
+                        <span>🕐 ${item.timestamp || '-'}</span>
+                        ${item.responseTime ? `<span>⚡ ${item.responseTime}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadResults();
+        // Auto-refresh every 10s
+        setInterval(loadResults, 10000);
+    </script>
+</body>
+</html>

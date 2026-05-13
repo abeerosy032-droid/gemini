@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 لعبة الاختبار التعليمي — GLM-5.1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === CONFETTI CANVAS === */
+        #confettiCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* === START SCREEN === */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .screen.active { display: flex; }
+
+        .start-screen .logo {
+            font-size: 5rem;
+            margin-bottom: 16px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .start-screen h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, #a78bfa, #7c3aed, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .start-screen .desc {
+            color: #6b7280;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .high-score-badge {
+            background: linear-gradient(135deg, #7c3aed22, #3b82f622);
+            border: 1px solid #7c3aed44;
+            padding: 12px 24px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .high-score-badge .label {
+            font-size: 0.78rem;
+            color: #6b7280;
+        }
+
+        .high-score-badge .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 14px;
+            font-size: 1.15rem;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px #7c3aed44;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px #7c3aed66;
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background: #1f2937;
+            box-shadow: none;
+            border: 1px solid #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #374151;
+            box-shadow: none;
+        }
+
+        /* === QUIZ SCREEN === */
+        .quiz-container {
+            width: 100%;
+            max-width: 700px;
+            position: relative;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #1f2937;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* Timer */
+        .timer-section {
+            margin-bottom: 24px;
+        }
+
+        .timer-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .timer-info .time-label { color: #6b7280; }
+
+        .timer-info .time-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .timer-info .time-value.warning { color: #f59e0b; }
+        .timer-info .time-value.danger { color: #ef4444; animation: timerPulse 0.5s infinite; }
+
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .timer-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #1f2937;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            border-radius: 4px;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .timer-bar-fill.warning {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .timer-bar-fill.danger {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        /* Question Card with Slide Animation */
+        .question-slider {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .question-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 20px;
+            padding: 28px;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        .question-card.slide-out-left {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        .question-card.slide-out-right {
+            transform: translateX(-120%);
+            opacity: 0;
+        }
+
+        .question-card.slide-in {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .question-card.slide-in-from-left {
+            animation: slideFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .question-card.slide-in-from-right {
+            animation: slideFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideFromRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideFromLeft {
+            from { transform: translateX(-120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #7c3aed22;
+            color: #a78bfa;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.8;
+            color: #f3f4f6;
+            margin-bottom: 24px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #e0e0e0;
+            cursor: pointer;
+            text-align: right;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #7c3aed;
+            background: #7c3aed11;
+            transform: translateX(-4px);
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .option-btn:hover:not(:disabled) .option-letter {
+            background: #7c3aed;
+        }
+
+        .option-btn.correct {
+            border-color: #22c55e;
+            background: #22c55e11;
+        }
+
+        .option-btn.correct .option-letter {
+            background: #22c55e;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            border-color: #ef4444;
+            background: #ef444411;
+        }
+
+        .option-btn.wrong .option-letter {
+            background: #ef4444;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .option-btn.correct:disabled,
+        .option-btn.wrong:disabled {
+            opacity: 1;
+        }
+
+        /* === RESULT SCREEN === */
+        .result-container {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .result-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .result-circle svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .result-circle circle {
+            fill: none;
+            stroke-width: 8;
+            cx: 90; cy: 90; r: 82;
+        }
+
+        .result-circle .bg { stroke: #1f2937; }
+
+        .result-circle .fill {
+            stroke: #7c3aed;
+            stroke-dasharray: 515;
+            stroke-dashoffset: 515;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 2s ease;
+        }
+
+        .result-circle .percentage {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #f3f4f6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-circle .out-of {
+            font-size: 0.85rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-message {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-submessage {
+            color: #6b7280;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        /* Review Section */
+        .review-section {
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .review-section.active { display: block; }
+
+        .review-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #a78bfa;
+        }
+
+        .review-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: right;
+        }
+
+        .review-card.review-correct {
+            border-right: 4px solid #22c55e;
+        }
+
+        .review-card.review-wrong {
+            border-right: 4px solid #ef4444;
+        }
+
+        .review-card.review-skipped {
+            border-right: 4px solid #6b7280;
+        }
+
+        .review-q-text {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 14px;
+            line-height: 1.7;
+        }
+
+        .review-answers {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .review-answer {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .review-answer.user-answer {
+            background: #ef444411;
+            color: #f87171;
+        }
+
+        .review-answer.correct-answer {
+            background: #22c55e11;
+            color: #4ade80;
+        }
+
+        .review-answer.is-both {
+            background: #22c55e11;
+            color: #4ade80;
+        }
+
+        .review-badge {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #374151;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- START SCREEN -->
+<div class="screen active" id="startScreen">
+    <div class="logo">🧠</div>
+    <h1>لعبة الاختبار التعليمي</h1>
+    <p class="desc">10 أسئلة متنوعة — 30 ثانية لكل سؤال<br>اختبر معلوماتك وتحدّى نفسك!</p>
+    <div class="high-score-badge" id="highScoreBadge" style="display:none">
+        <div class="label">🏆 أعلى نتيجة</div>
+        <div class="score" id="highScoreValue">0%</div>
+    </div>
+    <button class="btn" onclick="startQuiz()">🚀 ابدأ اللعب</button>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div class="screen" id="quizScreen">
+    <div class="quiz-container">
+        <div class="progress-section">
+            <div class="progress-info">
+                <span id="questionProgress">السؤال 1 من 10</span>
+                <span id="scoreDisplay">النقاط: 0</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div class="timer-info">
+                <span class="time-label">⏱ الوقت المتبقي</span>
+                <span class="time-value" id="timerValue">30</span>
+            </div>
+            <div class="timer-bar-bg">
+                <div class="timer-bar-fill" id="timerFill" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <div class="question-slider">
+            <div class="question-card slide-in" id="questionCard">
+                <div class="question-number" id="questionNumber">السؤال 1</div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options-grid" id="optionsGrid"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen" id="resultScreen">
+    <div class="result-container">
+        <div class="result-circle">
+            <svg><circle class="bg"/><circle class="fill" id="resultCircle"/></svg>
+            <div class="percentage" id="resultPercentage">0%</div>
+            <div class="out-of" id="resultOutOf">0/10</div>
+        </div>
+        <div class="result-message" id="resultMessage"></div>
+        <div class="result-submessage" id="resultSubMessage"></div>
+        <div class="result-buttons">
+            <button class="btn" onclick="startQuiz()">🔄 العب مرة أخرى</button>
+            <button class="btn btn-secondary" onclick="toggleReview()">📋 مراجعة الأسئلة</button>
+        </div>
+    </div>
+    <div class="review-section" id="reviewSection"></div>
+    <div class="footer">مشروع 9 — تقييم GLM-5.1 🧠</div>
+</div>
+
+<script>
+// ============================
+// بيانات الأسئلة
+// ============================
+const ALL_QUESTIONS = [
+    {
+        question: "ما هي عاصمة اليابان؟",
+        options: ["أوساكا", "طوكيو", "كيوتو", "يوكوهاما"],
+        correct: 1,
+        category: "جغرافيا"
+    },
+    {
+        question: "ما هو العنصر الكيميائي الذي رمزه Au؟",
+        options: ["فضة", "ألمنيوم", "ذهب", "نحاس"],
+        correct: 2,
+        category: "علوم"
+    },
+    {
+        question: "من هو مؤلف رواية 'مئة عام من العزلة'؟",
+        options: ["بابلو نيرودا", "خورخي لويس بورخيس", "غابرييل غارسيا ماركيز", "إيزابيل أليندي"],
+        correct: 2,
+        category: "أدب"
+    },
+    {
+        question: "كم عدد الكواكب في المجموعة الشمسية؟",
+        options: ["7", "8", "9", "10"],
+        correct: 1,
+        category: "علوم"
+    },
+    {
+        question: "ما هي أكبر قارة في العالم من حيث المساحة؟",
+        options: ["أفريقيا", "أمريكا الشمالية", "آسيا", "أوروبا"],
+        correct: 2,
+        category: "جغرافيا"
+    },
+    {
+        question: "في أي عام هبط الإنسان على سطح القمر لأول مرة؟",
+        options: ["1965", "1969", "1971", "1973"],
+        correct: 1,
+        category: "تاريخ"
+    },
+    {
+        question: "ما هي لغة البرمجة الأكثر استخداماً في تطوير الويب من جانب العميل؟",
+        options: ["Python", "Java", "JavaScript", "C++"],
+        correct: 2,
+        category: "تقنية"
+    },
+    {
+        question: "ما هو أطول نهر في العالم؟",
+        options: ["الأمازون", "النيل", "المسيسيبي", "اليانغتسي"],
+        correct: 1,
+        category: "جغرافيا"
+    },
+    {
+        question: "ما هو المعدن الأكثر صلابة في الطبيعة؟",
+        options: ["الحديد", "التيتانيوم", "الألماس", "التنغستن"],
+        correct: 2,
+        category: "علوم"
+    },
+    {
+        question: "كم عدد أسنان الإنسان البالغ الطبيعية؟",
+        options: ["28", "30", "32", "34"],
+        correct: 2,
+        category: "صحة"
+    }
+];
+
+// ============================
+// متغيرات اللعبة
+// ============================
+let questions = [];
+let currentQ = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = 30;
+let userAnswers = [];
+const TIMER_DURATION = 30;
+const TOTAL_QUESTIONS = 10;
+const STORAGE_KEY = 'glm5_quiz_highscore';
+
+// ============================
+// خلط الأسئلة عشوائياً
+// ============================
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+// ============================
+// عرض الشاشات
+// ============================
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ============================
+// بدء اللعبة
+// ============================
+function startQuiz() {
+    questions = shuffle(ALL_QUESTIONS).slice(0, TOTAL_QUESTIONS);
+    currentQ = 0;
+    score = 0;
+    userAnswers = new Array(TOTAL_QUESTIONS).fill(null);
+    showScreen('quizScreen');
+    showQuestion();
+}
+
+// ============================
+// عرض السؤال مع Animation
+// ============================
+function showQuestion() {
+    const card = document.getElementById('questionCard');
+    const q = questions[currentQ];
+
+    // تحديث شريط التقدم
+    document.getElementById('questionProgress').textContent = `السؤال ${currentQ + 1} من ${TOTAL_QUESTIONS}`;
+    document.getElementById('scoreDisplay').textContent = `النقاط: ${score}`;
+    document.getElementById('progressFill').style.width = `${((currentQ + 1) / TOTAL_QUESTIONS) * 100}%`;
+
+    // Animation خروج
+    card.classList.remove('slide-in', 'slide-in-from-right');
+    card.classList.add('slide-out-left');
+
+    setTimeout(() => {
+        // تحديث المحتوى
+        document.getElementById('questionNumber').textContent = `السؤال ${currentQ + 1} — ${q.category}`;
+        document.getElementById('questionText').textContent = q.question;
+
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        const letters = ['أ', 'ب', 'ج', 'د'];
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+            btn.onclick = () => selectAnswer(i);
+            grid.appendChild(btn);
+        });
+
+        // Animation دخول
+        card.classList.remove('slide-out-left');
+        card.classList.add('slide-in-from-right');
+
+        // بدء المؤقت
+        startTimer();
+    }, 300);
+}
+
+// ============================
+// المؤقت العكسي
+// ============================
+function startTimer() {
+    clearInterval(timerInterval);
+    timeLeft = TIMER_DURATION;
+
+    const timerValue = document.getElementById('timerValue');
+    const timerFill = document.getElementById('timerFill');
+
+    timerValue.textContent = timeLeft;
+    timerValue.className = 'time-value';
+    timerFill.style.width = '100%';
+    timerFill.className = 'timer-bar-fill';
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        timerValue.textContent = timeLeft;
+        timerFill.style.width = `${(timeLeft / TIMER_DURATION) * 100}%`;
+
+        if (timeLeft <= 10) {
+            timerValue.className = 'time-value warning';
+            timerFill.className = 'timer-bar-fill warning';
+        }
+        if (timeLeft <= 5) {
+            timerValue.className = 'time-value danger';
+            timerFill.className = 'timer-bar-fill danger';
+        }
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeOut();
+        }
+    }, 1000);
+}
+
+// ============================
+// انتهاء الوقت
+// ============================
+function timeOut() {
+    const btns = document.querySelectorAll('.option-btn');
+    const correctIdx = questions[currentQ].correct;
+
+    btns.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === correctIdx) btn.classList.add('correct');
+    });
+
+    userAnswers[currentQ] = { selected: null, correct: correctIdx, timedOut: true };
+
+    setTimeout(nextQuestion, 1500);
+}
+
+// ============================
+// اختيار الإجابة
+// ============================
+function selectAnswer(idx) {
+    clearInterval(timerInterval); // إيقاف المؤقت فوراً
+
+    const btns = document.querySelectorAll('.option-btn');
+    const correctIdx = questions[currentQ].correct;
+    const isCorrect = idx === correctIdx;
+
+    // تعطيل كل الأزرار
+    btns.forEach(btn => btn.disabled = true);
+
+    // تلوين فوري
+    btns[correctIdx].classList.add('correct');
+    if (!isCorrect) {
+        btns[idx].classList.add('wrong');
+    }
+
+    if (isCorrect) score++;
+
+    userAnswers[currentQ] = { selected: idx, correct: correctIdx, timedOut: false };
+
+    setTimeout(nextQuestion, 1200);
+}
+
+// ============================
+// السؤال التالي
+// ============================
+function nextQuestion() {
+    currentQ++;
+    if (currentQ >= TOTAL_QUESTIONS) {
+        showResults();
+    } else {
+        showQuestion();
+    }
+}
+
+// ============================
+// عرض النتائج
+// ============================
+function showResults() {
+    clearInterval(timerInterval);
+    showScreen('resultScreen');
+
+    const percentage = Math.round((score / TOTAL_QUESTIONS) * 100);
+    const circumference = 2 * Math.PI * 82; // ~515
+
+    document.getElementById('resultPercentage').textContent = `${percentage}%`;
+    document.getElementById('resultOutOf').textContent = `${score}/${TOTAL_QUESTIONS}`;
+
+    // Animated circle
+    const circle = document.getElementById('resultCircle');
+    const offset = circumference - (percentage / 100) * circumference;
+    setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+    }, 200);
+
+    // رسالة حسب الدرجة
+    let msg, sub;
+    if (percentage === 100) {
+        msg = "🎉 نتيجة مثالية!";
+        sub = "أنت عبقري! أجبت على كل الأسئلة بشكل صحيح";
+        circle.style.stroke = '#22c55e';
+    } else if (percentage >= 80) {
+        msg = "🌟 ممتاز!";
+        sub = "أداء رائع! معلوماتك واسعة ومتنوعة";
+        circle.style.stroke = '#22c55e';
+    } else if (percentage >= 70) {
+        msg = "👏 أحسنت!";
+        sub = "نتيجة جيدة جداً! استمر في التعلم";
+        circle.style.stroke = '#7c3aed';
+    } else if (percentage >= 50) {
+        msg = "📚 لا بأس!";
+        sub = "محاولة جيدة، لكن يمكنك أن تكون أفضل";
+        circle.style.stroke = '#f59e0b';
+    } else {
+        msg = "💪 حاول مجدداً!";
+        sub = "لا تيأس! كل محاولة فرصة للتعلم";
+        circle.style.stroke = '#ef4444';
+    }
+
+    document.getElementById('resultMessage').textContent = msg;
+    document.getElementById('resultSubMessage').textContent = sub;
+
+    // High Score
+    const prev = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+    if (percentage > prev) {
+        localStorage.setItem(STORAGE_KEY, percentage);
+    }
+    updateHighScoreBadge();
+
+    // Confetti عند النجاح > 70%
+    if (percentage >= 70) {
+        launchConfetti();
+    }
+
+    // إخفاء المراجعة
+    document.getElementById('reviewSection').classList.remove('active');
+}
+
+// ============================
+// High Score
+// ============================
+function updateHighScoreBadge() {
+    const hs = localStorage.getItem(STORAGE_KEY);
+    const badge = document.getElementById('highScoreBadge');
+    if (hs && parseInt(hs) > 0) {
+        badge.style.display = 'block';
+        document.getElementById('highScoreValue').textContent = `${hs}%`;
+    }
+}
+
+// ============================
+// مراجعة الأسئلة
+// ============================
+function toggleReview() {
+    const section = document.getElementById('reviewSection');
+    section.classList.toggle('active');
+
+    if (section.classList.contains('active')) {
+        renderReview();
+    }
+}
+
+function renderReview() {
+    const section = document.getElementById('reviewSection');
+    let html = '<div class="review-title">📋 مراجعة الأسئلة والأجوبة</div>';
+
+    questions.forEach((q, i) => {
+        const ans = userAnswers[i];
+        const isCorrect = ans && ans.selected === ans.correct;
+        const isSkipped = ans && ans.timedOut && ans.selected === null;
+        const cardClass = isSkipped ? 'review-skipped' : (isCorrect ? 'review-correct' : 'review-wrong');
+
+        html += `
+        <div class="review-card ${cardClass}">
+            <div class="review-q-text">${i + 1}. ${q.question}</div>
+            <div class="review-answers">`;
+
+        q.options.forEach((opt, oi) => {
+            let cls = '';
+            let badge = '';
+
+            if (oi === q.correct) {
+                cls = 'correct-answer';
+                badge = '<span class="review-badge" style="background:#22c55e22;color:#4ade80">✓ صحيحة</span>';
+            }
+
+            if (ans && ans.selected === oi && oi !== q.correct) {
+                cls = 'user-answer';
+                badge = '<span class="review-badge" style="background:#ef444422;color:#f87171">✗ اختيارك</span>';
+            }
+
+            if (ans && ans.selected === oi && oi === q.correct) {
+                cls = 'is-both';
+                badge = '<span class="review-badge" style="background:#22c55e22;color:#4ade80">✓ اختيارك</span>';
+            }
+
+            if (isSkipped && oi === q.correct) {
+                badge += ' <span class="review-badge" style="background:#6b728022;color:#9ca3af">⏱ انتهى الوقت</span>';
+            }
+
+            html += `<div class="review-answer ${cls}">${opt} ${badge}</div>`;
+        });
+
+        html += '</div></div>';
+    });
+
+    section.innerHTML = html;
+}
+
+// ============================
+// Confetti (CSS/Canvas خالص بدون مكتبة)
+// ============================
+function launchConfetti() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#7c3aed', '#a78bfa', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#fbbf24'];
+    const shapes = ['rect', 'circle', 'triangle'];
+
+    for (let i = 0; i < 200; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            vx: (Math.random() - 0.5) * 8,
+            vy: Math.random() * 4 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            size: Math.random() * 8 + 3,
+            shape: shapes[Math.floor(Math.random() * shapes.length)],
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 10,
+            opacity: 1
+        });
+    }
+
+    let frame = 0;
+    const maxFrames = 180;
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frame++;
+
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.08; // gravity
+            p.vx *= 0.99;
+            p.rotation += p.rotationSpeed;
+
+            if (frame > maxFrames - 40) {
+                p.opacity = Math.max(0, p.opacity - 0.025);
+            }
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+
+            if (p.shape === 'rect') {
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            } else if (p.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(0, -p.size / 2);
+                ctx.lineTo(p.size / 2, p.size / 2);
+                ctx.lineTo(-p.size / 2, p.size / 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+        });
+
+        if (frame < maxFrames) {
+            requestAnimationFrame(animate);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    animate();
+}
+
+// ============================
+// عند التحميل
+// ============================
+updateHighScoreBadge();
+
+// إعادة ضبط دائرة النتيجة عند فتح الصفحة
+const circleEl = document.getElementById('resultCircle');
+circleEl.style.strokeDasharray = 2 * Math.PI * 82;
+circleEl.style.strokeDashoffset = 2 * Math.PI * 82;
+
+// resize confetti canvas
+window.addEventListener('resize', () => {
+    const c = document.getElementById('confettiCanvas');
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Weather Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/main.js" defer></script>
+</head>
+<body class="weather-default">
+    <div class="container">
+        <header>
+            <div class="search-bar">
+                <input type="text" id="city-input" placeholder="Enter city name...">
+                <button id="search-btn">Search</button>
+                <button id="geo-btn" title="Use My Location">📍</button>
+            </div>
+            <div class="api-key-container hidden">
+                <input type="password" id="api-key-input" placeholder="API Key" title="Not needed in Mock mode">
+            </div>
+            <div class="controls">
+                <button id="unit-toggle" data-unit="metric">°C / °F</button>
+            </div>
+        </header>
+        <div id="error-message" class="hidden"></div>
+        <div class="main-content hidden" id="dashboard">
+            <section class="current-weather" id="current-weather">
+                <!-- Current weather injected here -->
+            </section>
+            
+            <section class="chart-container" style="position: relative; height:300px; width:100%">
+                <canvas id="forecast-chart"></canvas>
+            </section>
+            
+            <section class="forecast" id="forecast">
+                <!-- 5-day forecast injected here -->
+            </section>
+
+            <section class="history">
+                <h3>Recent Searches</h3>
+                <ul id="history-list"></ul>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

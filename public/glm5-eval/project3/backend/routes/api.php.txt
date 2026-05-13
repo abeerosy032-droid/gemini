@@ -1,0 +1,33 @@
+<?php
+
+use App\Http\Controllers\TaskController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes — Task Management
+|--------------------------------------------------------------------------
+|
+| All routes are protected by Sanctum SPA authentication.
+| Rate limiting is applied via RouteServiceProvider configuration:
+|   - authenticated users: 60 req/min
+|   - guests: 10 req/min
+|
+*/
+
+Route::middleware('auth:sanctum')->prefix('tasks')->name('tasks.')->group(function () {
+
+    Route::get('/', [TaskController::class, 'index'])->name('index');
+    // Supports query params: ?status=done&priority=high&due=today&search=keyword&per_page=10
+
+    Route::post('/', [TaskController::class, 'store'])->name('store');
+
+    Route::get('/{task}', [TaskController::class, 'show'])->name('show');
+
+    Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+    Route::patch('/{task}', [TaskController::class, 'update'])->name('patch');
+
+    Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+
+    Route::patch('/{task}/toggle', [TaskController::class, 'toggle'])->name('toggle');
+});

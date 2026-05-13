@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كود المشروع 14 - Gemini</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; }
+        .sidebar { background-color: #161b22; border-left: 1px solid #30363d; }
+        .file-item:hover { background-color: #21262d; cursor: pointer; }
+        .file-item.active { background-color: #1f6feb; color: white; }
+        pre { margin: 0; padding: 1rem; background-color: transparent; }
+        .preview-frame { background-color: white; width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="bg-[#161b22] border-b border-[#30363d] p-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">G</div>
+            <h1 class="text-xl font-bold">المشروع 14: لوحة إنفوجرافيك SVG تفاعلية</h1>
+        </div>
+        <div class="flex gap-4">
+            <button id="view-code" class="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] rounded-md border border-[#30363d] transition-colors">عرض الكود</button>
+            <button id="view-preview" class="px-4 py-2 bg-[#238636] hover:bg-[#2ea043] rounded-md text-white transition-colors">معاينة حية</button>
+            <a href="/" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white transition-colors">الرئيسية</a>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 sidebar overflow-y-auto hidden" id="sidebar">
+            <div class="p-3 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-[#30363d]">ملفات المشروع</div>
+            <div id="file-tree" class="py-2">
+                <!-- File list dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col bg-[#0d1117] overflow-hidden" id="main-content">
+            <div id="code-container" class="flex-1 overflow-auto hidden w-full">
+                <pre><code id="code-block" class="language-html"></code></pre>
+            </div>
+            <div id="preview-container" class="flex-1 w-full h-full">
+                <iframe src="/gemini-project14.html" class="preview-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileList = [
+            { name: 'index.html', path: '/gemini-project14.html', type: 'html' }
+        ];
+
+        const fileTree = document.getElementById('file-tree');
+        const codeBlock = document.getElementById('code-block');
+        const codeContainer = document.getElementById('code-container');
+        const previewContainer = document.getElementById('preview-container');
+        const sidebar = document.getElementById('sidebar');
+
+        // View toggle
+        document.getElementById('view-code').addEventListener('click', () => {
+            codeContainer.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+            if(fileList.length > 0) loadFile(fileList[0]);
+        });
+
+        document.getElementById('view-preview').addEventListener('click', () => {
+            codeContainer.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+            sidebar.classList.add('hidden');
+        });
+
+        // Initialize file tree
+        fileList.forEach((file, index) => {
+            const el = document.createElement('div');
+            el.className = `file-item px-4 py-2 text-sm flex items-center gap-2 ${index === 0 ? 'active' : ''}`;
+            let icon = '📄';
+            if(file.type === 'html') icon = '<span class="text-orange-500 font-bold">&lt;/&gt;</span>';
+            
+            el.innerHTML = `${icon} ${file.name}`;
+            el.onclick = () => {
+                document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+                loadFile(file);
+            };
+            fileTree.appendChild(el);
+        });
+
+        async function loadFile(file) {
+            try {
+                const response = await fetch(file.path);
+                const text = await response.text();
+                codeBlock.className = `language-${file.type}`;
+                codeBlock.textContent = text;
+                hljs.highlightElement(codeBlock);
+            } catch (error) {
+                codeBlock.textContent = 'Error loading file: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 تقييم GLM-5.1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #2d1b69, #1a1a3e);
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #7c4dff;
+        }
+        .header h1 { font-size: 2em; color: #b388ff; }
+        .header .subtitle { color: #888; margin-top: 8px; font-size: 0.95em; }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 140px;
+        }
+        .stat-box .num { font-size: 2em; font-weight: bold; color: #b388ff; }
+        .stat-box .label { font-size: 0.85em; color: #888; margin-top: 4px; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .question-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .question-card:hover { border-color: #7c4dff; }
+        .q-header {
+            background: #12122a;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .q-header .q-num { color: #b388ff; font-weight: bold; }
+        .q-header .q-category {
+            background: #7c4dff33;
+            color: #b388ff;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+        .q-body { padding: 20px; display: none; }
+        .question-card.open .q-body { display: block; }
+        .q-body .q-text {
+            color: #fff;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .q-body .answer {
+            background: #0d0d1a;
+            border-radius: 8px;
+            padding: 15px;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 0.95em;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .q-body .meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 12px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .rating {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .rating .stars { color: #ffd700; font-size: 1.2em; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state p { font-size: 1.1em; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .badge-excellent { background: #1b5e2030; color: #4caf50; }
+        .badge-good { background: #e6510030; color: #ff9800; }
+        .badge-weak { background: #b71c1c30; color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 تقييم GLM-5.1</h1>
+        <div class="subtitle">اختبار الأداء عبر أسئلة متنوعة — <span id="date">2026-05-10</span></div>
+    </div>
+    <div class="stats">
+        <div class="stat-box">
+            <div class="num" id="totalQ">0</div>
+            <div class="label">سؤال</div>
+        </div>
+        <div class="stat-box">
+            <div class="num" id="avgRating">—</div>
+            <div class="label">متوسط التقييم</div>
+        </div>
+        <div class="stat-box">
+            <div class="num" id="categories">0</div>
+            <div class="label">تصنيف</div>
+        </div>
+    </div>
+    <div class="container" id="questionsContainer">
+        <div class="empty-state">
+            <div class="icon">🧪</div>
+            <p>بانتظار الأسئلة...</p>
+            <p style="font-size:0.85em; margin-top:8px;">سيتم عرض كل سؤال وجوابه هنا تلقائياً</p>
+        </div>
+    </div>
+
+    <script>
+        // Load questions from JSON
+        async function loadQuestions() {
+            try {
+                const res = await fetch('/glm5-eval-data.json');
+                if (!res.ok) return;
+                const data = await res.json();
+                renderQuestions(data);
+            } catch(e) {}
+        }
+
+        function renderQuestions(data) {
+            const container = document.getElementById('questionsContainer');
+            document.getElementById('totalQ').textContent = data.length;
+
+            const cats = [...new Set(data.map(q => q.category))];
+            document.getElementById('categories').textContent = cats.length;
+
+            const rated = data.filter(q => q.rating);
+            if (rated.length) {
+                const avg = (rated.reduce((s,q) => s + q.rating, 0) / rated.length).toFixed(1);
+                document.getElementById('avgRating').textContent = avg + '/5';
+            }
+
+            container.innerHTML = data.map((q, i) => `
+                <div class="question-card" onclick="this.classList.toggle('open')">
+                    <div class="q-header">
+                        <span class="q-num">سؤال #${i+1}</span>
+                        <span class="q-category">${q.category}</span>
+                    </div>
+                    <div class="q-body">
+                        <div class="q-text">❓ ${q.question}</div>
+                        <div class="answer">${q.answer}</div>
+                        <div class="meta">
+                            <span>⏱️ ${q.responseTime || '—'}</span>
+                            <span>📏 ${(q.answer||'').length} حرف</span>
+                        </div>
+                        ${q.rating ? `<div class="rating"><span class="stars">${'★'.repeat(q.rating)}${'☆'.repeat(5-q.rating)}</span>
+                        <span class="badge badge-${q.rating >= 4 ? 'excellent' : q.rating >= 3 ? 'good' : 'weak'}">${q.rating >= 4 ? 'ممتاز' : q.rating >= 3 ? 'جيد' : 'ضعيف'}</span></div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadQuestions();
+        setInterval(loadQuestions, 5000);
+    </script>
+</body>
+</html>

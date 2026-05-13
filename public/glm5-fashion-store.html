@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر الأزياء - Vue 3 Fashion Store</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        [v-cloak] { display: none; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Product card hover zoom */
+        .product-image {
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover .product-image {
+            transform: scale(1.1);
+        }
+
+        /* Cart drawer slide animation */
+        .cart-drawer-enter-active,
+        .cart-drawer-leave-active {
+            transition: transform 0.3s ease;
+        }
+        .cart-drawer-enter-from,
+        .cart-drawer-leave-to {
+            transform: translateX(100%);
+        }
+
+        /* Modal fade animation */
+        .modal-enter-active,
+        .modal-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .modal-enter-from,
+        .modal-leave-to {
+            opacity: 0;
+        }
+
+        /* Wishlist heart animation */
+        .heart-icon {
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        .heart-icon:hover {
+            transform: scale(1.2);
+        }
+        .heart-icon.active {
+            color: #ef4444;
+            animation: heartBeat 0.3s ease;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        /* Add to cart button animation */
+        .add-to-cart-btn {
+            transition: all 0.3s ease;
+        }
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .add-to-cart-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Product list animation */
+        .product-list-enter-active,
+        .product-list-leave-active {
+            transition: all 0.3s ease;
+        }
+        .product-list-enter-from,
+        .product-list-leave-to {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Price slider custom styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Checkout step animation */
+        .step-enter-active,
+        .step-leave-active {
+            transition: all 0.3s ease;
+        }
+        .step-enter-from,
+        .step-leave-to {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" v-cloak>
+        <!-- Header -->
+        <header class="bg-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-bag-heart text-3xl text-purple-600"></i>
+                        <h1 class="text-2xl font-bold text-gray-800">متجر الأزياء</h1>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="hidden md:flex flex-1 max-w-xl mx-8">
+                        <div class="relative w-full">
+                            <input
+                                type="text"
+                                v-model="searchQuery"
+                                placeholder="ابحث عن منتج..."
+                                class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                            <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-4">
+                        <!-- Wishlist -->
+                        <button
+                            @click="toggleWishlistPanel"
+                            class="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <i class="bi bi-heart text-2xl text-gray-600"></i>
+                            <span
+                                v-if="wishlistCount > 0"
+                                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+                            >
+                                {{ wishlistCount }}
+                            </span>
+                        </button>
+
+                        <!-- Cart -->
+                        <button
+                            @click="toggleCart"
+                            class="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <i class="bi bi-cart3 text-2xl text-gray-600"></i>
+                            <span
+                                v-if="cartCount > 0"
+                                class="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+                            >
+                                {{ cartCount }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <div class="flex gap-8">
+                <!-- Filters Sidebar -->
+                <aside class="w-64 flex-shrink-0 hidden lg:block">
+                    <div class="bg-white rounded-xl shadow-sm p-6 sticky top-24">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">تصفية المنتجات</h2>
+
+                        <!-- Price Range -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-700 mb-3">نطاق السعر</h3>
+                            <div class="px-2">
+                                <input
+                                    type="range"
+                                    v-model="priceRange"
+                                    min="0"
+                                    max="1000"
+                                    step="10"
+                                    class="w-full"
+                                >
+                                <div class="flex justify-between text-sm text-gray-600 mt-2">
+                                    <span>0 ر.س</span>
+                                    <span>{{ priceRange }} ر.س</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Colors -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-700 mb-3">اللون</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="color in colors"
+                                    :key="color"
+                                    @click="toggleColor(color)"
+                                    :class="[
+                                        'w-8 h-8 rounded-full border-2 transition-all',
+                                        selectedColors.includes(color) ? 'border-purple-600 scale-110' : 'border-gray-300'
+                                    ]"
+                                    :style="{ backgroundColor: color }"
+                                ></button>
+                            </div>
+                        </div>
+
+                        <!-- Sizes -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-700 mb-3">المقاس</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="size in sizes"
+                                    :key="size"
+                                    @click="toggleSize(size)"
+                                    :class="[
+                                        'px-4 py-2 rounded-lg border transition-all',
+                                        selectedSizes.includes(size)
+                                            ? 'bg-purple-600 text-white border-purple-600'
+                                            : 'bg-white text-gray-700 border-gray-300 hover:border-purple-600'
+                                    ]"
+                                >
+                                    {{ size }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-700 mb-3">التقييم</h3>
+                            <div class="flex flex-col gap-2">
+                                <button
+                                    v-for="rating in [5, 4, 3, 2, 1]"
+                                    :key="rating"
+                                    @click="selectedRating = selectedRating === rating ? null : rating"
+                                    :class="[
+                                        'flex items-center gap-2 px-3 py-2 rounded-lg transition-all',
+                                        selectedRating === rating
+                                            ? 'bg-purple-100 text-purple-700'
+                                            : 'hover:bg-gray-100'
+                                    ]"
+                                >
+                                    <span class="text-yellow-400">
+                                        {{ '★'.repeat(rating) }}{{ '☆'.repeat(5 - rating) }}
+                                    </span>
+                                    <span class="text-sm">فما فوق</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Clear Filters -->
+                        <button
+                            @click="clearFilters"
+                            class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        >
+                            مسح الفلاتر
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Products Grid -->
+                <div class="flex-1">
+                    <!-- Results count -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <p class="text-gray-600">
+                            {{ filteredProducts.length }} منتج
+                        </p>
+                        <select
+                            v-model="sortBy"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="default">الترتيب الافتراضي</option>
+                            <option value="price-asc">السعر: من الأقل للأعلى</option>
+                            <option value="price-desc">السعر: من الأعلى للأقل</option>
+                            <option value="rating-desc">التقييم: الأعلى أولاً</option>
+                        </select>
+                    </div>
+
+                    <!-- Products -->
+                    <transition-group
+                        name="product-list"
+                        tag="div"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                        <div
+                            v-for="product in filteredProducts"
+                            :key="product.id"
+                            class="product-card bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <!-- Product Image -->
+                            <div class="relative overflow-hidden aspect-[3/4]">
+                                <img
+                                    :src="product.image"
+                                    :alt="product.name"
+                                    class="product-image w-full h-full object-cover"
+                                >
+                                <!-- Badges -->
+                                <div class="absolute top-3 right-3 flex flex-col gap-2">
+                                    <span
+                                        v-if="product.isNew"
+                                        class="bg-green-500 text-white text-xs px-3 py-1 rounded-full"
+                                    >
+                                        جديد
+                                    </span>
+                                    <span
+                                        v-if="product.discount"
+                                        class="bg-red-500 text-white text-xs px-3 py-1 rounded-full"
+                                    >
+                                        خصم {{ product.discount }}%
+                                    </span>
+                                </div>
+                                <!-- Wishlist Button -->
+                                <button
+                                    @click="toggleWishlist(product)"
+                                    class="absolute top-3 left-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
+                                >
+                                    <i
+                                        :class="[
+                                            'bi bi-heart heart-icon text-xl',
+                                            isInWishlist(product.id) ? 'active' : 'text-gray-400'
+                                        ]"
+                                    ></i>
+                                </button>
+                                <!-- Quick View Button -->
+                                <button
+                                    @click="openQuickView(product)"
+                                    class="absolute bottom-3 left-3 px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow text-sm font-semibold"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    عرض سريع
+                                </button>
+                            </div>
+
+                            <!-- Product Info -->
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-800 mb-2">{{ product.name }}</h3>
+                                <div class="flex items-center gap-1 mb-2">
+                                    <span class="text-yellow-400">
+                                        {{ '★'.repeat(Math.floor(product.rating)) }}{{ '☆'.repeat(5 - Math.floor(product.rating)) }}
+                                    </span>
+                                    <span class="text-sm text-gray-500">({{ product.reviews }})</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span
+                                            v-if="product.discount"
+                                            class="text-gray-400 line-through text-sm ml-2"
+                                        >
+                                            {{ product.originalPrice }} ر.س
+                                        </span>
+                                        <span class="text-xl font-bold text-purple-600">
+                                            {{ product.price }} ر.س
+                                        </span>
+                                    </div>
+                                    <button
+                                        @click="addToCart(product)"
+                                        class="add-to-cart-btn bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                    >
+                                        <i class="bi bi-cart-plus"></i>
+                                        <span>أضف</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition-group>
+
+                    <!-- No Results -->
+                    <div
+                        v-if="filteredProducts.length === 0"
+                        class="text-center py-16"
+                    >
+                        <i class="bi bi-search text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">لا توجد نتائج</p>
+                        <button
+                            @click="clearFilters"
+                            class="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            مسح الفلاتر
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Cart Drawer -->
+        <transition name="cart-drawer">
+            <div
+                v-if="isCartOpen"
+                class="fixed inset-0 z-50 flex justify-end"
+            >
+                <!-- Overlay -->
+                <div
+                    @click="toggleCart"
+                    class="absolute inset-0 bg-black/50"
+                ></div>
+
+                <!-- Drawer -->
+                <div class="relative w-full max-w-md bg-white shadow-xl h-full overflow-hidden flex flex-col">
+                    <!-- Header -->
+                    <div class="p-4 border-b flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-gray-800">سلة التسوق</h2>
+                        <button
+                            @click="toggleCart"
+                            class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <i class="bi bi-x-lg text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cart Items -->
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <div
+                            v-if="cart.length === 0"
+                            class="text-center py-16"
+                        >
+                            <i class="bi bi-cart-x text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">السلة فارغة</p>
+                        </div>
+
+                        <div v-else class="space-y-4">
+                            <div
+                                v-for="item in cart"
+                                :key="item.id"
+                                class="flex gap-4 p-4 bg-gray-50 rounded-lg"
+                            >
+                                <img
+                                    :src="item.image"
+                                    :alt="item.name"
+                                    class="w-20 h-20 object-cover rounded-lg"
+                                >
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">{{ item.name }}</h3>
+                                    <p class="text-purple-600 font-bold">{{ item.price }} ر.س</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <button
+                                            @click="updateQuantity(item, -1)"
+                                            class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+                                        >
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <span class="font-semibold">{{ item.quantity }}</span>
+                                        <button
+                                            @click="updateQuantity(item, 1)"
+                                            class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+                                        >
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button
+                                    @click="removeFromCart(item)"
+                                    class="text-red-500 hover:text-red-700 transition-colors"
+                                >
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div v-if="cart.length > 0" class="p-4 border-t bg-gray-50">
+                        <div class="flex justify-between mb-4">
+                            <span class="text-gray-600">المجموع:</span>
+                            <span class="text-xl font-bold text-purple-600">{{ cartTotal }} ر.س</span>
+                        </div>
+                        <button
+                            @click="startCheckout"
+                            class="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                        >
+                            إتمام الشراء
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Quick View Modal -->
+        <transition name="modal">
+            <div
+                v-if="quickViewProduct"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+                <!-- Overlay -->
+                <div
+                    @click="closeQuickView"
+                    class="absolute inset-0 bg-black/50"
+                ></div>
+
+                <!-- Modal Content -->
+                <div class="relative bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                    <button
+                        @click="closeQuickView"
+                        class="absolute top-4 left-4 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
+                    >
+                        <i class="bi bi-x-lg text-xl"></i>
+                    </button>
+
+                    <div class="grid md:grid-cols-2 gap-8 p-8">
+                        <!-- Image -->
+                        <div class="aspect-square rounded-xl overflow-hidden">
+                            <img
+                                :src="quickViewProduct.image"
+                                :alt="quickViewProduct.name"
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
+
+                        <!-- Details -->
+                        <div class="flex flex-col">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                                {{ quickViewProduct.name }}
+                            </h2>
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-yellow-400">
+                                    {{ '★'.repeat(Math.floor(quickViewProduct.rating)) }}{{ '☆'.repeat(5 - Math.floor(quickViewProduct.rating)) }}
+                                </span>
+                                <span class="text-gray-500">({{ quickViewProduct.reviews }} تقييم)</span>
+                            </div>
+                            <p class="text-gray-600 mb-6">{{ quickViewProduct.description }}</p>
+
+                            <div class="mb-6">
+                                <span
+                                    v-if="quickViewProduct.discount"
+                                    class="text-gray-400 line-through text-xl ml-2"
+                                >
+                                    {{ quickViewProduct.originalPrice }} ر.س
+                                </span>
+                                <span class="text-3xl font-bold text-purple-600">
+                                    {{ quickViewProduct.price }} ر.س
+                                </span>
+                            </div>
+
+                            <!-- Size Selection -->
+                            <div class="mb-6">
+                                <h3 class="font-semibold text-gray-700 mb-3">المقاس</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        v-for="size in quickViewProduct.sizes"
+                                        :key="size"
+                                        :class="[
+                                            'px-4 py-2 rounded-lg border transition-all',
+                                            selectedSize === size
+                                                ? 'bg-purple-600 text-white border-purple-600'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:border-purple-600'
+                                        ]"
+                                        @click="selectedSize = size"
+                                    >
+                                        {{ size }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Color Selection -->
+                            <div class="mb-6">
+                                <h3 class="font-semibold text-gray-700 mb-3">اللون</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        v-for="color in quickViewProduct.colors"
+                                        :key="color"
+                                        :class="[
+                                            'w-10 h-10 rounded-full border-2 transition-all',
+                                            selectedColor === color ? 'border-purple-600 scale-110' : 'border-gray-300'
+                                        ]"
+                                        :style="{ backgroundColor: color }"
+                                        @click="selectedColor = color"
+                                    ></button>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-4 mt-auto">
+                                <button
+                                    @click="addToCart(quickViewProduct)"
+                                    class="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                                >
+                                    <i class="bi bi-cart-plus"></i>
+                                    أضف للسلة
+                                </button>
+                                <button
+                                    @click="toggleWishlist(quickViewProduct)"
+                                    :class="[
+                                        'w-12 h-12 rounded-lg flex items-center justify-center transition-colors',
+                                        isInWishlist(quickViewProduct.id)
+                                            ? 'bg-red-100 text-red-500'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ]"
+                                >
+                                    <i class="bi bi-heart text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Checkout Modal -->
+        <transition name="modal">
+            <div
+                v-if="isCheckoutOpen"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+                <div
+                    @click="closeCheckout"
+                    class="absolute inset-0 bg-black/50"
+                ></div>
+
+                <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" style="z-index: 60;">
+                    <div class="p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+                        <h2 class="text-xl font-bold text-gray-800">إتمام الشراء</h2>
+                        <button
+                            @click="closeCheckout"
+                            class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <i class="bi bi-x-lg text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Progress -->
+                        <div class="flex items-center justify-between mb-8">
+                            <div
+                                v-for="(step, index) in checkoutSteps"
+                                :key="index"
+                                class="flex items-center"
+                            >
+                                <div
+                                    :class="[
+                                        'w-10 h-10 rounded-full flex items-center justify-center font-semibold',
+                                        currentStep > index
+                                            ? 'bg-green-500 text-white'
+                                            : currentStep === index
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-gray-200 text-gray-600'
+                                    ]"
+                                >
+                                    {{ currentStep > index ? '✓' : index + 1 }}
+                                </div>
+                                <span
+                                    :class="[
+                                        'ml-2 font-semibold',
+                                        currentStep === index ? 'text-purple-600' : 'text-gray-600'
+                                    ]"
+                                >
+                                    {{ step }}
+                                </span>
+                                <div
+                                    v-if="index < checkoutSteps.length - 1"
+                                    :class="[
+                                        'w-16 h-1 mx-4',
+                                        currentStep > index ? 'bg-green-500' : 'bg-gray-200'
+                                    ]"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <!-- Step Content -->
+                        <transition name="step" mode="out-in">
+                            <!-- Step 1: Shipping -->
+                            <div v-if="currentStep === 1" key="step1">
+                                <h3 class="text-lg font-semibold mb-4">معلومات الشحن</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                                        <input
+                                            type="text"
+                                            v-model="shippingInfo.name"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
+                                        <input
+                                            type="tel"
+                                            v-model="shippingInfo.phone"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+                                        <textarea
+                                            v-model="shippingInfo.address"
+                                            rows="3"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Payment -->
+                            <div v-if="currentStep === 2" key="step2">
+                                <h3 class="text-lg font-semibold mb-4">طريقة الدفع</h3>
+                                <div class="space-y-3">
+                                    <label
+                                        :class="[
+                                            'flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all',
+                                            paymentMethod === 'card' ? 'border-purple-600 bg-purple-50' : 'border-gray-300'
+                                        ]"
+                                    >
+                                        <input
+                                            type="radio"
+                                            v-model="paymentMethod"
+                                            value="card"
+                                            class="ml-3"
+                                        >
+                                        <i class="bi bi-credit-card text-2xl text-purple-600 ml-3"></i>
+                                        <span class="font-semibold">بطاقة ائتمان</span>
+                                    </label>
+                                    <label
+                                        :class="[
+                                            'flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all',
+                                            paymentMethod === 'cash' ? 'border-purple-600 bg-purple-50' : 'border-gray-300'
+                                        ]"
+                                    >
+                                        <input
+                                            type="radio"
+                                            v-model="paymentMethod"
+                                            value="cash"
+                                            class="ml-3"
+                                        >
+                                        <i class="bi bi-cash text-2xl text-green-600 ml-3"></i>
+                                        <span class="font-semibold">الدفع عند الاستلام</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Confirmation -->
+                            <div v-if="currentStep === 3" key="step3">
+                                <h3 class="text-lg font-semibold mb-4">تأكيد الطلب</h3>
+                                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                    <div class="space-y-2">
+                                        <div
+                                            v-for="item in cart"
+                                            :key="item.id"
+                                            class="flex justify-between"
+                                        >
+                                            <span>{{ item.name }} × {{ item.quantity }}</span>
+                                            <span class="font-semibold">{{ item.price * item.quantity }} ر.س</span>
+                                        </div>
+                                    </div>
+                                    <div class="border-t mt-4 pt-4">
+                                        <div class="flex justify-between text-lg font-bold">
+                                            <span>المجموع</span>
+                                            <span class="text-purple-600">{{ cartTotal }} ر.س</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2 text-sm text-gray-600">
+                                    <p><strong>الاسم:</strong> {{ shippingInfo.name }}</p>
+                                    <p><strong>الهاتف:</strong> {{ shippingInfo.phone }}</p>
+                                    <p><strong>العنوان:</strong> {{ shippingInfo.address }}</p>
+                                    <p><strong>طريقة الدفع:</strong> {{ paymentMethod === 'card' ? 'بطاقة ائتمان' : 'الدفع عند الاستلام' }}</p>
+                                </div>
+                            </div>
+                        </transition>
+
+                        <!-- Navigation -->
+                        <div class="flex justify-between mt-8">
+                            <button
+                                v-if="currentStep > 1"
+                                @click="currentStep--"
+                                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                            >
+                                السابق
+                            </button>
+                            <div v-else></div>
+                            <button
+                                v-if="currentStep < 3"
+                                @click="currentStep++"
+                                class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                                التالي
+                            </button>
+                            <button
+                                v-else
+                                @click="completeOrder"
+                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                تأكيد الطلب
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Toast Notification -->
+        <transition name="modal">
+            <div
+                v-if="toast.show"
+                class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+            >
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-check-circle text-xl"></i>
+                    <span>{{ toast.message }}</span>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, reactive } = Vue;
+
+        const app = createApp({
+            setup() {
+                // Products Data
+                const products = ref([
+                    {
+                        id: 1,
+                        name: 'فستان صيفي أنيق',
+                        price: 299,
+                        originalPrice: 399,
+                        discount: 25,
+                        rating: 4.8,
+                        reviews: 124,
+                        image: 'https://picsum.photos/seed/fashion1/400/533',
+                        isNew: true,
+                        category: 'فساتين',
+                        colors: ['#FF6B6B', '#4ECDC4', '#45B7D1'],
+                        sizes: ['S', 'M', 'L', 'XL'],
+                        description: 'فستان صيفي خفيف ومريح، مثالي للمناسبات والخروجات اليومية. مصنوع من القطن الناعم مع تصميم عصري.'
+                    },
+                    {
+                        id: 2,
+                        name: 'بنطال جينز كلاسيكي',
+                        price: 199,
+                        rating: 4.5,
+                        reviews: 89,
+                        image: 'https://picsum.photos/seed/fashion2/400/533',
+                        category: 'بنطال',
+                        colors: ['#1A1A2E', '#4A4A6A', '#6B6B8A'],
+                        sizes: ['28', '30', '32', '34', '36'],
+                        description: 'بنطال جينز كلاسيكي بجودة عالية، مناسب لجميع المناسبات. تصميم مريح ومتين.'
+                    },
+                    {
+                        id: 3,
+                        name: 'بلوزة حرير فاخرة',
+                        price: 449,
+                        originalPrice: 599,
+                        discount: 25,
+                        rating: 4.9,
+                        reviews: 67,
+                        image: 'https://picsum.photos/seed/fashion3/400/533',
+                        isNew: true,
+                        category: 'بلوزات',
+                        colors: ['#FFFFFF', '#FFE4E1', '#E6E6FA'],
+                        sizes: ['S', 'M', 'L'],
+                        description: 'بلوزة حرير فاخرة بناعمة الملمس، مثالية للمناسبات الرسمية. تصميم أنيق وأنيق.'
+                    },
+                    {
+                        id: 4,
+                        name: 'جاكيت شتوي دافئ',
+                        price: 599,
+                        rating: 4.7,
+                        reviews: 156,
+                        image: 'https://picsum.photos/seed/fashion4/400/533',
+                        category: 'جاكيتات',
+                        colors: ['#2C3E50', '#34495E', '#5D6D7E'],
+                        sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+                        description: 'جاكيت شتوي دافئ ومريح، يحميك من البرد. مصنوع من مواد عالية الجودة.'
+                    },
+                    {
+                        id: 5,
+                        name: 'حذاء رياضي عصري',
+                        price: 349,
+                        originalPrice: 449,
+                        discount: 22,
+                        rating: 4.6,
+                        reviews: 203,
+                        image: 'https://picsum.photos/seed/fashion5/400/533',
+                        category: 'أحذية',
+                        colors: ['#000000', '#FFFFFF', '#FF6B6B'],
+                        sizes: ['38', '39', '40', '41', '42', '43'],
+                        description: 'حذاء رياضي عصري ومريح، مثالي للتمارين والخروجات اليومية. تصميم أنيق.'
+                    },
+                    {
+                        id: 6,
+                        name: 'حقيبة يد أنيقة',
+                        price: 279,
+                        rating: 4.4,
+                        reviews: 78,
+                        image: 'https://picsum.photos/seed/fashion6/400/533',
+                        category: 'حقائب',
+                        colors: ['#8B4513', '#000000', '#D2691E'],
+                        sizes: ['واحد'],
+                        description: 'حقيبة يد أنيقة وعملية، تتسع لجميع احتياجاتك. تصميم عصري وجذاب.'
+                    },
+                    {
+                        id: 7,
+                        name: 'قميص رسمي أبيض',
+                        price: 179,
+                        rating: 4.3,
+                        reviews: 92,
+                        image: 'https://picsum.photos/seed/fashion7/400/533',
+                        category: 'قمصان',
+                        colors: ['#FFFFFF', '#F5F5DC', '#E8E8E8'],
+                        sizes: ['S', 'M', 'L', 'XL'],
+                        description: 'قميص رسمي أبيض أنيق، مثالي للعمل والمناسبات الرسمية. جودة عالية.'
+                    },
+                    {
+                        id: 8,
+                        name: 'تنورة صيفية مزخرفة',
+                        price: 229,
+                        originalPrice: 299,
+                        discount: 23,
+                        rating: 4.7,
+                        reviews: 134,
+                        image: 'https://picsum.photos/seed/fashion8/400/533',
+                        isNew: true,
+                        category: 'تنورات',
+                        colors: ['#FF69B4', '#FFB6C1', '#FFC0CB'],
+                        sizes: ['S', 'M', 'L'],
+                        description: 'تنورة صيفية مزخرفة بتصميم عصري، مثالية للخروجات الصيفية. خفيفة ومريحة.'
+                    },
+                    {
+                        id: 9,
+                        name: 'ساعة يد كلاسيكية',
+                        price: 899,
+                        rating: 4.9,
+                        reviews: 45,
+                        image: 'https://picsum.photos/seed/fashion9/400/533',
+                        category: 'إكسسوارات',
+                        colors: ['#C0C0C0', '#FFD700', '#000000'],
+                        sizes: ['واحد'],
+                        description: 'ساعة يد كلاسيكية فاخرة، تصميم أنيق ودقيق. مثالية للهدايا.'
+                    },
+                    {
+                        id: 10,
+                        name: 'نظارة شمسية عصرية',
+                        price: 199,
+                        rating: 4.5,
+                        reviews: 167,
+                        image: 'https://picsum.photos/seed/fashion10/400/533',
+                        category: 'إكسسوارات',
+                        colors: ['#000000', '#8B4513', '#4A4A4A'],
+                        sizes: ['واحد'],
+                        description: 'نظارة شمسية عصرية تحمي عينيك من أشعة الشمس. تصميم جذاب ومريح.'
+                    },
+                    {
+                        id: 11,
+                        name: 'حزام جلد فاخر',
+                        price: 149,
+                        rating: 4.4,
+                        reviews: 89,
+                        image: 'https://picsum.photos/seed/fashion11/400/533',
+                        category: 'إكسسوارات',
+                        colors: ['#8B4513', '#000000', '#D2691E'],
+                        sizes: ['S', 'M', 'L'],
+                        description: 'حزام جلد فاخر بجودة عالية، يضيف لمسة أنيقة لملابسك. متين وعصري.'
+                    },
+                    {
+                        id: 12,
+                        name: 'طقم ملابس رياضي',
+                        price: 399,
+                        originalPrice: 499,
+                        discount: 20,
+                        rating: 4.6,
+                        reviews: 112,
+                        image: 'https://picsum.photos/seed/fashion12/400/533',
+                        category: 'رياضة',
+                        colors: ['#000000', '#FF6B6B', '#4ECDC4'],
+                        sizes: ['S', 'M', 'L', 'XL'],
+                        description: 'طقم ملابس رياضي مريح وعصري، مثالي للتمارين والخروجات. جودة عالية.'
+                    }
+                ]);
+
+                // Cart State
+                const cart = ref([]);
+                const wishlist = ref([]);
+
+                // UI State
+                const isCartOpen = ref(false);
+                const isCheckoutOpen = ref(false);
+                const quickViewProduct = ref(null);
+                const selectedSize = ref(null);
+                const selectedColor = ref(null);
+                const toast = reactive({ show: false, message: '' });
+
+                // Filters
+                const searchQuery = ref('');
+                const priceRange = ref(1000);
+                const selectedColors = ref([]);
+                const selectedSizes = ref([]);
+                const selectedRating = ref(null);
+                const sortBy = ref('default');
+
+                // Checkout
+                const currentStep = ref(1);
+                const checkoutSteps = ['الشحن', 'الدفع', 'التأكيد'];
+                const shippingInfo = reactive({
+                    name: '',
+                    phone: '',
+                    address: ''
+                });
+                const paymentMethod = ref('card');
+
+                // Filter options
+                const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'];
+                const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+                // Computed
+                const filteredProducts = computed(() => {
+                    let result = [...products.value];
+
+                    // Search
+                    if (searchQuery.value) {
+                        const query = searchQuery.value.toLowerCase();
+                        result = result.filter(p =>
+                            p.name.toLowerCase().includes(query) ||
+                            p.category.toLowerCase().includes(query) ||
+                            p.description.toLowerCase().includes(query)
+                        );
+                    }
+
+                    // Price
+                    result = result.filter(p => p.price <= priceRange.value);
+
+                    // Colors
+                    if (selectedColors.value.length > 0) {
+                        result = result.filter(p =>
+                            p.colors.some(c => selectedColors.value.includes(c))
+                        );
+                    }
+
+                    // Sizes
+                    if (selectedSizes.value.length > 0) {
+                        result = result.filter(p =>
+                            p.sizes.some(s => selectedSizes.value.includes(s))
+                        );
+                    }
+
+                    // Rating
+                    if (selectedRating.value) {
+                        result = result.filter(p => p.rating >= selectedRating.value);
+                    }
+
+                    // Sort
+                    switch (sortBy.value) {
+                        case 'price-asc':
+                            result.sort((a, b) => a.price - b.price);
+                            break;
+                        case 'price-desc':
+                            result.sort((a, b) => b.price - a.price);
+                            break;
+                        case 'rating-desc':
+                            result.sort((a, b) => b.rating - a.rating);
+                            break;
+                    }
+
+                    return result;
+                });
+
+                const cartCount = computed(() => cart.value.reduce((sum, item) => sum + item.quantity, 0));
+                const cartTotal = computed(() => cart.value.reduce((sum, item) => sum + (item.price * item.quantity), 0));
+                const wishlistCount = computed(() => wishlist.value.length);
+
+                // Methods
+                const toggleCart = () => {
+                    isCartOpen.value = !isCartOpen.value;
+                };
+
+                const toggleWishlistPanel = () => {
+                    showToast('قائمة المفضلة');
+                };
+
+                const toggleWishlist = (product) => {
+                    const index = wishlist.value.indexOf(product.id);
+                    if (index > -1) {
+                        wishlist.value.splice(index, 1);
+                        showToast('أزيل من المفضلة');
+                    } else {
+                        wishlist.value.push(product.id);
+                        showToast('أضيف للمفضلة');
+                    }
+                };
+
+                const isInWishlist = (id) => wishlist.value.includes(id);
+
+                const addToCart = (product) => {
+                    const existing = cart.value.find(item => item.id === product.id);
+                    if (existing) {
+                        existing.quantity++;
+                    } else {
+                        cart.value.push({ ...product, quantity: 1 });
+                    }
+                    showToast('أضيف للسلة');
+                };
+
+                const updateQuantity = (item, delta) => {
+                    const cartItem = cart.value.find(i => i.id === item.id);
+                    if (cartItem) {
+                        cartItem.quantity += delta;
+                        if (cartItem.quantity <= 0) {
+                            removeFromCart(item);
+                        }
+                    }
+                };
+
+                const removeFromCart = (item) => {
+                    cart.value = cart.value.filter(i => i.id !== item.id);
+                    showToast('أزيل من السلة');
+                };
+
+                const openQuickView = (product) => {
+                    quickViewProduct.value = product;
+                    selectedSize.value = product.sizes[0];
+                    selectedColor.value = product.colors[0];
+                };
+
+                const closeQuickView = () => {
+                    quickViewProduct.value = null;
+                };
+
+                const startCheckout = () => {
+                    isCartOpen.value = false;
+                    isCheckoutOpen.value = true;
+                    currentStep.value = 1;
+                };
+
+                const closeCheckout = () => {
+                    isCheckoutOpen.value = false;
+                };
+
+                const completeOrder = () => {
+                    cart.value = [];
+                    isCheckoutOpen.value = false;
+                    showToast('تم الطلب بنجاح!');
+                };
+
+                const showToast = (message) => {
+                    toast.message = message;
+                    toast.show = true;
+                    setTimeout(() => {
+                        toast.show = false;
+                    }, 2000);
+                };
+
+                const toggleColor = (color) => {
+                    const index = selectedColors.value.indexOf(color);
+                    if (index > -1) {
+                        selectedColors.value.splice(index, 1);
+                    } else {
+                        selectedColors.value.push(color);
+                    }
+                };
+
+                const toggleSize = (size) => {
+                    const index = selectedSizes.value.indexOf(size);
+                    if (index > -1) {
+                        selectedSizes.value.splice(index, 1);
+                    } else {
+                        selectedSizes.value.push(size);
+                    }
+                };
+
+                const clearFilters = () => {
+                    searchQuery.value = '';
+                    priceRange.value = 1000;
+                    selectedColors.value = [];
+                    selectedSizes.value = [];
+                    selectedRating.value = null;
+                    sortBy.value = 'default';
+                };
+
+                return {
+                    // State
+                    isCartOpen,
+                    isCheckoutOpen,
+                    quickViewProduct,
+                    selectedSize,
+                    selectedColor,
+                    toast,
+                    searchQuery,
+                    priceRange,
+                    selectedColors,
+                    selectedSizes,
+                    selectedRating,
+                    sortBy,
+                    currentStep,
+                    checkoutSteps,
+                    shippingInfo,
+                    paymentMethod,
+                    colors,
+                    sizes,
+
+                    // Computed
+                    filteredProducts,
+                    cart,
+                    cartCount,
+                    cartTotal,
+                    wishlistCount,
+
+                    // Methods
+                    toggleCart,
+                    toggleWishlistPanel,
+                    toggleWishlist,
+                    isInWishlist,
+                    addToCart,
+                    updateQuantity,
+                    removeFromCart,
+                    openQuickView,
+                    closeQuickView,
+                    startCheckout,
+                    closeCheckout,
+                    completeOrder,
+                    toggleColor,
+                    toggleSize,
+                    clearFilters
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Task Manager — GLM-5.1 Demo</title>
+    <style>
+        :root[data-theme='dark'] {
+            --bg: #0d0d1a; --surface: #1a1a2e; --surface2: #12122a;
+            --border: #2a2a4a; --text: #e0e0e0; --muted: #888;
+            --primary: #7c4dff; --primary-bg: #7c4dff22;
+            --success: #4caf50; --warning: #ff9800; --danger: #f44336;
+            --input-bg: #0a0a15;
+        }
+        :root[data-theme='light'] {
+            --bg: #f0f2f5; --surface: #ffffff; --surface2: #f8f9fa;
+            --border: #ddd; --text: #1a1a2e; --muted: #666;
+            --primary: #5c35cc; --primary-bg: #5c35cc18;
+            --success: #2e7d32; --warning: #e65100; --danger: #c62828;
+            --input-bg: #f5f5f5;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI','Tajawal',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+        
+        .app { max-width:680px; margin:0 auto; padding:16px; }
+        
+        /* Header */
+        .header { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border); margin-bottom:20px; }
+        .header h1 { font-size:22px; }
+        .header h1 span { color:var(--primary); }
+        .header-right { display:flex; align-items:center; gap:10px; }
+        .header-stats { font-size:12px; color:var(--muted); }
+        .btn-icon { width:38px; height:38px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .2s; }
+        .btn-icon:hover { border-color:var(--primary); }
+        
+        /* Network log toggle */
+        .network-toggle { position:fixed; bottom:20px; left:20px; z-index:100; }
+        .network-toggle .btn-icon { width:48px; height:48px; font-size:22px; background:var(--primary); color:#fff; border:none; box-shadow:0 4px 15px rgba(124,77,255,.4); }
+        .network-badge { position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; font-size:10px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; }
+        
+        /* Network panel */
+        .network-panel { position:fixed; bottom:80px; left:20px; width:380px; max-height:400px; background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,.3); z-index:99; display:none; }
+        .network-panel.open { display:block; }
+        .network-panel-header { padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .network-panel-header h3 { font-size:14px; color:var(--primary); }
+        .network-panel-body { padding:8px; max-height:340px; overflow-y:auto; }
+        .net-log { padding:8px 12px; margin:4px 0; border-radius:8px; font-size:12px; font-family:monospace; direction:ltr; text-align:left; }
+        .net-log-success { background:#4caf5015; border:1px solid #4caf5033; }
+        .net-log-error { background:#f4433615; border:1px solid #f4433633; }
+        .net-log-pending { background:#ff980015; border:1px solid #ff980033; }
+        .net-method { font-weight:bold; color:var(--primary); }
+        .net-status-ok { color:var(--success); font-weight:bold; }
+        .net-status-err { color:var(--danger); font-weight:bold; }
+        .net-time { color:var(--muted); float:right; }
+        
+        /* Add form */
+        .add-form { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:16px; transition:border-color .2s; }
+        .add-form:focus-within { border-color:var(--primary); }
+        .add-row { display:flex; gap:10px; align-items:center; }
+        .add-row input[type=text] { flex:1; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:14px; outline:none; transition:border-color .2s; }
+        .add-row input:focus { border-color:var(--primary); }
+        .btn-primary { background:var(--primary); color:#fff; border:none; border-radius:10px; padding:12px 22px; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .2s; }
+        .btn-primary:hover { opacity:.85; }
+        .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+        .expand-btn { background:transparent; border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--muted); cursor:pointer; font-size:16px; }
+        
+        .extra-fields { display:none; margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+        .extra-fields.hidden { display:none; }
+        .extra-fields.visible { display:flex; }
+        .extra-fields textarea { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:10px 14px; color:var(--text); font-size:13px; resize:vertical; outline:none; min-height:60px; }
+        .extra-fields textarea:focus { border-color:var(--primary); }
+        .field-row { display:flex; gap:10px; flex-wrap:wrap; }
+        .field-row select, .field-row input[type=date] { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:9px 12px; color:var(--text); font-size:13px; outline:none; flex:1; min-width:120px; }
+        
+        /* Filters */
+        .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+        .filters input[type=text] { flex:1; min-width:140px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 14px; color:var(--text); font-size:13px; outline:none; }
+        .filters select { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 12px; color:var(--text); font-size:13px; outline:none; }
+        .filter-btn { padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; font-size:13px; }
+        .filter-btn:hover { border-color:var(--primary); }
+        .filter-btn.active { background:var(--primary-bg); border-color:var(--primary); color:var(--primary); font-weight:600; }
+        .clear-btn { background:transparent; border:1px solid var(--border); border-radius:10px; padding:9px 14px; color:var(--muted); cursor:pointer; font-size:13px; }
+        
+        /* Stats bar */
+        .stats-bar { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+        .stat-chip { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:6px 14px; font-size:12px; color:var(--muted); }
+        .stat-chip strong { color:var(--text); }
+        
+        /* Task list */
+        .task-list { display:flex; flex-direction:column; gap:8px; }
+        
+        .task { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; transition:all .2s; animation:slideIn .25s ease; }
+        .task:hover { border-color:var(--primary); }
+        .task.done { opacity:.55; }
+        .task.optimistic { border-style:dashed; border-color:var(--warning); }
+        .task.deleting { animation:fadeOut .3s ease forwards; }
+        
+        @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeOut { to { opacity:0; transform:translateX(30px); height:0; padding:0; margin:0; overflow:hidden; } }
+        
+        /* Checkbox */
+        .checkbox { width:24px; height:24px; border-radius:50%; border:2px solid var(--border); cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .2s; background:transparent; color:transparent; font-size:14px; }
+        .checkbox.checked { background:var(--success); border-color:var(--success); color:#fff; }
+        .checkbox:hover { border-color:var(--primary); }
+        
+        /* Task content */
+        .task-content { flex:1; min-width:0; }
+        .task-title { font-weight:500; font-size:14px; }
+        .task.done .task-title { text-decoration:line-through; color:var(--muted); }
+        .task-meta { display:flex; gap:8px; align-items:center; margin-top:4px; flex-wrap:wrap; }
+        .task-desc { font-size:12px; color:var(--muted); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        
+        .badge { font-size:10px; padding:2px 8px; border-radius:12px; font-weight:600; }
+        .badge-high { background:#f4433620; color:var(--danger); }
+        .badge-medium { background:#ff980020; color:var(--warning); }
+        .badge-low { background:#4caf5020; color:var(--success); }
+        .badge-status { background:var(--primary-bg); color:var(--primary); }
+        .badge-overdue { background:#f4433620; color:var(--danger); }
+        .badge-date { background:var(--surface2); color:var(--muted); font-weight:400; }
+        
+        /* Delete */
+        .del-btn { background:none; border:none; cursor:pointer; font-size:18px; padding:4px; color:var(--muted); opacity:0; transition:all .2s; }
+        .task:hover .del-btn { opacity:1; }
+        .confirm-del { display:flex; gap:6px; }
+        .confirm-del button { font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; border:1px solid var(--border); }
+        .confirm-del .yes { background:var(--danger); color:#fff; border-color:var(--danger); }
+        .confirm-del .no { background:transparent; color:var(--muted); }
+        
+        /* Empty state */
+        .empty { text-align:center; padding:60px 20px; color:var(--muted); }
+        .empty .icon { font-size:48px; margin-bottom:12px; }
+        .empty p { font-size:15px; margin-bottom:4px; }
+        .empty small { font-size:13px; }
+        
+        /* Loading */
+        .loading { text-align:center; padding:30px; color:var(--muted); }
+        .spinner { display:inline-block; width:28px; height:28px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        
+        /* Toast */
+        .toast-container { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; }
+        .toast { padding:12px 24px; border-radius:10px; font-size:14px; font-weight:500; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,.3); animation:toastIn .3s ease, toastOut .3s ease 3.5s forwards; white-space:nowrap; }
+        .toast-success { background:var(--success); }
+        .toast-error { background:var(--danger); }
+        .toast-info { background:var(--primary); }
+        @keyframes toastIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes toastOut { to { opacity:0; transform:translateY(20px); } }
+        
+        /* Responsive */
+        @media (max-width:500px) {
+            .app { padding:10px; }
+            .filters input, .filters select { min-width:100px; }
+            .field-row { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>📋 <span>Task Manager</span></h1>
+                <div class="header-stats" id="stats">جاري التحميل...</div>
+            </div>
+            <div class="header-right">
+                <button class="btn-icon" onclick="toggleDark()" id="themeBtn" title="Dark/Light">🌙</button>
+            </div>
+        </div>
+
+        <!-- Add form -->
+        <form class="add-form" onsubmit="addTask(event)">
+            <div class="add-row">
+                <input type="text" id="taskTitle" placeholder="✏️ أضف مهمة جديدة..." autocomplete="off" required>
+                <button type="button" class="expand-btn" onclick="toggleExpand()">▼</button>
+                <button type="submit" class="btn-primary" id="addBtn">إضافة</button>
+            </div>
+            <div class="extra-fields hidden" id="extraFields">
+                <textarea id="taskDesc" placeholder="وصف المهمة (اختياري)..."></textarea>
+                <div class="field-row">
+                    <select id="taskPriority">
+                        <option value="medium">🟡 متوسطة</option>
+                        <option value="high">🔴 عالية</option>
+                        <option value="low">🟢 منخفضة</option>
+                    </select>
+                    <select id="taskStatus">
+                        <option value="pending">قيد الانتظار</option>
+                        <option value="in_progress">قيد التنفيذ</option>
+                        <option value="done">مكتمل</option>
+                    </select>
+                    <input type="date" id="taskDue">
+                </div>
+            </div>
+        </form>
+
+        <!-- Filters -->
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="🔍 بحث..." oninput="applyFilters()">
+            <select id="filterStatus" onchange="applyFilters()">
+                <option value="">كل الحالات</option>
+                <option value="pending">قيد الانتظار</option>
+                <option value="in_progress">قيد التنفيذ</option>
+                <option value="done">مكتمل</option>
+            </select>
+            <select id="filterPriority" onchange="applyFilters()">
+                <option value="">كل الأولويات</option>
+                <option value="high">عالية</option>
+                <option value="medium">متوسطة</option>
+                <option value="low">منخفضة</option>
+            </select>
+            <button class="clear-btn" onclick="clearFilters()">مسح</button>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="stats-bar" id="statsBar"></div>
+
+        <!-- Task list -->
+        <div id="taskList" class="task-list"></div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Network log -->
+    <div class="network-toggle">
+        <button class="btn-icon" onclick="toggleNetwork()" title="API Log">🔌<span class="network-badge" id="netBadge">0</span></button>
+    </div>
+    <div class="network-panel" id="networkPanel">
+        <div class="network-panel-header">
+            <h3>🔌 API Network Log</h3>
+            <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;" onclick="clearNetwork()">مسح</button>
+        </div>
+        <div class="network-panel-body" id="networkBody"></div>
+    </div>
+
+<script>
+// ============================
+// MOCK API — Simulates Laravel REST API
+// ============================
+const API_DELAY = 400; // ms — simulates network
+const FAIL_RATE = 0.05; // 5% chance of failure
+
+let nextId = 100;
+let DB = [];
+
+// Seed initial data
+const seedTasks = [
+    { title:'تصميم قاعدة البيانات', description:'تصميم الجداول والعلاقات لنظام المطعم', status:'done', priority:'high', due_date:'2026-05-08' },
+    { title:'إنشاء API Endpoints', description:'GET, POST, PUT, DELETE للمهام مع Sanctum Auth', status:'done', priority:'high', due_date:'2026-05-09' },
+    { title:'تصميم واجهة React', description:'TaskItem, TaskForm, TaskFilters مع TypeScript', status:'in_progress', priority:'high', due_date:'2026-05-11' },
+    { title:'إضافة Optimistic UI', description:'تحديث فوري مع rollback عند فشل API', status:'in_progress', priority:'medium', due_date:'2026-05-11' },
+    { title:'Dark Mode', description:'CSS Variables + localStorage toggle', status:'pending', priority:'low', due_date:'2026-05-12' },
+    { title:'كتابة Unit Tests', description:'5 test cases مع RefreshDatabase', status:'pending', priority:'medium', due_date:'2026-05-12' },
+    { title:'Rate Limiting', description:'60 req/min للمسجل، 10 req/min للـ guest', status:'pending', priority:'low', due_date:'2026-05-13' },
+    { title:'CORS Configuration', description:'السماح بـ localhost:5173 مع credentials', status:'pending', priority:'low', due_date:'2026-05-14' },
+    { title:'TaskCollection Resource', description:'meta + links + filters في JSON response', status:'done', priority:'medium', due_date:'2026-05-09' },
+    { title:'Toast Notifications', description:'إشعار عند نجاح أو فشل العمليات', status:'done', priority:'low', due_date:'2026-05-10' },
+];
+
+seedTasks.forEach(t => {
+    DB.push({
+        id: nextId++,
+        ...t,
+        created_at: new Date(Date.now() - Math.random() * 7 * 86400000).toISOString(),
+        updated_at: new Date().toISOString(),
+    });
+});
+
+// Simulated API calls
+const networkLogs = [];
+
+function logNetwork(method, url, status, time, isError) {
+    networkLogs.unshift({ method, url, status, time, isError, at: new Date() });
+    renderNetwork();
+}
+
+async function apiGet(filters = {}) {
+    const start = Date.now();
+    await delay(API_DELAY);
+    
+    let results = [...DB];
+    
+    if (filters.status) results = results.filter(t => t.status === filters.status);
+    if (filters.priority) results = results.filter(t => t.priority === filters.priority);
+    if (filters.search) {
+        const q = filters.search.toLowerCase();
+        results = results.filter(t => t.title.toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
+    }
+    
+    results.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    const status = 200;
+    logNetwork('GET', '/api/tasks' + (Object.keys(filters).length ? '?' + new URLSearchParams(filters) : ''), status, Date.now()-start, false);
+    
+    return { status, data: { data: results, meta: { total: results.length, count: results.length } } };
+}
+
+async function apiPost(data) {
+    const start = Date.now();
+    await delay(API_DELAY);
+    
+    if (Math.random() < FAIL_RATE) {
+        logNetwork('POST', '/api/tasks', 500, Date.now()-start, true);
+        throw new Error('Server Error');
+    }
+    
+    const task = {
+        id: nextId++,
+        title: data.title,
+        description: data.description || null,
+        status: data.status || 'pending',
+        priority: data.priority || 'medium',
+        due_date: data.due_date || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+    DB.unshift(task);
+    
+    logNetwork('POST', '/api/tasks', 201, Date.now()-start, false);
+    return { status: 201, data: { data: task, message: 'تم إنشاء المهمة بنجاح' } };
+}
+
+async function apiDelete(id) {
+    const start = Date.now();
+    await delay(API_DELAY);
+    
+    if (Math.random() < FAIL_RATE) {
+        logNetwork('DELETE', `/api/tasks/${id}`, 500, Date.now()-start, true);
+        throw new Error('Server Error');
+    }
+    
+    DB = DB.filter(t => t.id !== id);
+    logNetwork('DELETE', `/api/tasks/${id}`, 200, Date.now()-start, false);
+    return { status: 200, data: { message: 'تم حذف المهمة بنجاح' } };
+}
+
+async function apiToggle(id) {
+    const start = Date.now();
+    await delay(API_DELAY);
+    
+    const task = DB.find(t => t.id === id);
+    if (!task) {
+        logNetwork('PATCH', `/api/tasks/${id}/toggle`, 404, Date.now()-start, true);
+        throw new Error('Not Found');
+    }
+    
+    task.status = task.status === 'done' ? 'pending' : 'done';
+    task.updated_at = new Date().toISOString();
+    
+    logNetwork('PATCH', `/api/tasks/${id}/toggle`, 200, Date.now()-start, false);
+    return { status: 200, data: { data: task, message: task.status === 'done' ? 'تم إكمال المهمة' : 'تم إلغاء إكمال المهمة' } };
+}
+
+async function apiPut(id, data) {
+    const start = Date.now();
+    await delay(API_DELAY);
+    
+    const task = DB.find(t => t.id === id);
+    if (!task) {
+        logNetwork('PUT', `/api/tasks/${id}`, 404, Date.now()-start, true);
+        throw new Error('Not Found');
+    }
+    
+    Object.assign(task, data, { updated_at: new Date().toISOString() });
+    logNetwork('PUT', `/api/tasks/${id}`, 200, Date.now()-start, false);
+    return { status: 200, data: { data: task } };
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================
+// APP STATE
+// ============================
+let tasks = [];
+let currentFilters = {};
+let isLoading = true;
+
+// ============================
+// RENDER
+// ============================
+function render() {
+    const list = document.getElementById('taskList');
+    const statsBar = document.getElementById('statsBar');
+    const stats = document.getElementById('stats');
+    
+    const filtered = getFilteredTasks();
+    
+    // Stats
+    const total = tasks.length;
+    const done = tasks.filter(t => t.status === 'done').length;
+    const inProgress = tasks.filter(t => t.status === 'in_progress').length;
+    const pending = tasks.filter(t => t.status === 'pending').length;
+    const overdue = tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length;
+    
+    stats.textContent = `${total} مهمة — ${done} مكتمل · ${inProgress} تنفيذ · ${pending} انتظار`;
+    
+    statsBar.innerHTML = `
+        <span class="stat-chip">📊 الكل: <strong>${total}</strong></span>
+        <span class="stat-chip">✅ مكتمل: <strong>${done}</strong></span>
+        <span class="stat-chip">🔄 تنفيذ: <strong>${inProgress}</strong></span>
+        <span class="stat-chip">⏳ انتظار: <strong>${pending}</strong></span>
+        ${overdue ? `<span class="stat-chip">⚠️ متأخر: <strong>${overdue}</strong></span>` : ''}
+    `;
+    
+    if (isLoading) {
+        list.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:10px">جاري تحميل المهام...</p></div>';
+        return;
+    }
+    
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${total === 0 ? 'لا توجد مهام بعد' : 'لا توجد نتائج'}</p><small>${total === 0 ? 'أضف مهمتك الأولى من الحقل أعلاه' : 'جرّب تغيير الفلاتر'}</small></div>`;
+        return;
+    }
+    
+    list.innerHTML = filtered.map(task => {
+        const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+        return `
+        <div class="task ${task.status === 'done' ? 'done' : ''}" id="task-${task.id}">
+            <button class="checkbox ${task.status === 'done' ? 'checked' : ''}" onclick="toggleTask(${task.id})">
+                ${task.status === 'done' ? '✓' : ''}
+            </button>
+            <div class="task-content">
+                <div class="task-title">${escHtml(task.title)}</div>
+                ${task.description ? `<div class="task-desc">${escHtml(task.description)}</div>` : ''}
+                <div class="task-meta">
+                    <span class="badge badge-${task.priority}">${task.priority}</span>
+                    <span class="badge badge-status">${statusLabel(task.status)}</span>
+                    ${isOverdue ? '<span class="badge badge-overdue">⚠️ متأخر</span>' : ''}
+                    ${task.due_date ? `<span class="badge badge-date">📅 ${task.due_date}</span>` : ''}
+                </div>
+            </div>
+            <button class="del-btn" onclick="confirmDelete(${task.id})" title="حذف">🗑️</button>
+        </div>`;
+    }).join('');
+}
+
+function getFilteredTasks() {
+    let result = [...tasks];
+    if (currentFilters.status) result = result.filter(t => t.status === currentFilters.status);
+    if (currentFilters.priority) result = result.filter(t => t.priority === currentFilters.priority);
+    if (currentFilters.search) {
+        const q = currentFilters.search.toLowerCase();
+        result = result.filter(t => t.title.toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
+    }
+    return result;
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function statusLabel(s) { return { pending:'قيد الانتظار', in_progress:'قيد التنفيذ', done:'مكتمل' }[s] || s; }
+
+// ============================
+// ACTIONS
+// ============================
+async function loadTasks() {
+    isLoading = true;
+    render();
+    const res = await apiGet();
+    tasks = res.data.data;
+    isLoading = false;
+    render();
+}
+
+async function addTask(e) {
+    e.preventDefault();
+    const title = document.getElementById('taskTitle').value.trim();
+    if (!title) return;
+    
+    const desc = document.getElementById('taskDesc').value.trim();
+    const priority = document.getElementById('taskPriority').value;
+    const status = document.getElementById('taskStatus').value;
+    const due_date = document.getElementById('taskDue').value || null;
+    
+    // Optimistic: add immediately with temp ID
+    const tempTask = {
+        id: Date.now(),
+        title, description: desc || null, status, priority, due_date,
+        created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    tasks.unshift(tempTask);
+    render();
+    showToast('⏳ جاري الإضافة...', 'info');
+    
+    try {
+        const res = await apiPost({ title, description: desc, priority, status, due_date });
+        // Replace temp with real
+        const idx = tasks.findIndex(t => t.id === tempTask.id);
+        if (idx !== -1) tasks[idx] = res.data.data;
+        showToast('✅ تم إضافة المهمة', 'success');
+    } catch {
+        tasks = tasks.filter(t => t.id !== tempTask.id);
+        showToast('❌ فشل إضافة المهمة — Optimistic Rollback', 'error');
+    }
+    render();
+    
+    // Reset form
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDesc').value = '';
+    document.getElementById('taskDue').value = '';
+    document.getElementById('taskPriority').value = 'medium';
+    document.getElementById('taskStatus').value = 'pending';
+    document.getElementById('extraFields').className = 'extra-fields hidden';
+}
+
+async function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    // Optimistic toggle
+    const originalStatus = task.status;
+    task.status = task.status === 'done' ? 'pending' : 'done';
+    task.updated_at = new Date().toISOString();
+    render();
+    
+    try {
+        const res = await apiToggle(id);
+        showToast(res.data.message, 'success');
+    } catch {
+        task.status = originalStatus;
+        task.updated_at = new Date().toISOString();
+        showToast('❌ فشل التحديث — Optimistic Rollback', 'error');
+        render();
+    }
+}
+
+function confirmDelete(id) {
+    const el = document.getElementById('task-' + id);
+    if (!el) return;
+    const delBtn = el.querySelector('.del-btn');
+    delBtn.outerHTML = `<div class="confirm-del"><button class="yes" onclick="deleteTask(${id})">تأكيد</button><button class="no" onclick="render()">إلغاء</button></div>`;
+}
+
+async function deleteTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    // Optimistic delete — animate out
+    const el = document.getElementById('task-' + id);
+    if (el) el.classList.add('deleting');
+    
+    const backup = {...task};
+    tasks = tasks.filter(t => t.id !== id);
+    
+    await delay(300); // wait for animation
+    render();
+    showToast('⏳ جاري الحذف...', 'info');
+    
+    try {
+        await apiDelete(id);
+        showToast('🗑️ تم حذف المهمة', 'success');
+    } catch {
+        tasks.splice(tasks.findIndex(t => t.id > backup.id), 0, backup);
+        showToast('❌ فشل الحذف — Optimistic Rollback', 'error');
+        render();
+    }
+}
+
+// ============================
+// FILTERS
+// ============================
+function applyFilters() {
+    currentFilters = {
+        status: document.getElementById('filterStatus').value || undefined,
+        priority: document.getElementById('filterPriority').value || undefined,
+        search: document.getElementById('searchInput').value || undefined,
+    };
+    // Remove undefined
+    Object.keys(currentFilters).forEach(k => { if (!currentFilters[k]) delete currentFilters[k]; });
+    render();
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterPriority').value = '';
+    currentFilters = {};
+    render();
+}
+
+// ============================
+// DARK MODE
+// ============================
+function toggleDark() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('darkMode', !isDark);
+    document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+}
+
+// Init dark mode
+(function() {
+    const saved = localStorage.getItem('darkMode');
+    const dark = saved === null ? true : saved === 'true';
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeBtn').textContent = dark ? '🌙' : '☀️';
+})();
+
+// ============================
+// EXPAND FORM
+// ============================
+function toggleExpand() {
+    const el = document.getElementById('extraFields');
+    el.className = el.classList.contains('hidden') ? 'extra-fields visible' : 'extra-fields hidden';
+}
+
+// ============================
+// TOAST
+// ============================
+function showToast(msg, type) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// ============================
+// NETWORK LOG
+// ============================
+function toggleNetwork() {
+    document.getElementById('networkPanel').classList.toggle('open');
+}
+function clearNetwork() {
+    networkLogs.length = 0;
+    renderNetwork();
+}
+function renderNetwork() {
+    const body = document.getElementById('networkBody');
+    const badge = document.getElementById('netBadge');
+    badge.textContent = networkLogs.length;
+    badge.style.display = networkLogs.length ? 'flex' : 'none';
+    
+    body.innerHTML = networkLogs.map(l => `
+        <div class="net-log ${l.isError ? 'net-log-error' : 'net-log-success'}">
+            <span class="net-method">${l.method}</span> ${l.url}<br>
+            <span class="${l.isError ? 'net-status-err' : 'net-status-ok'}">${l.status}</span> — ${l.time}ms
+            <span class="net-time">${l.at.toLocaleTimeString()}</span>
+        </div>
+    `).join('');
+}
+
+// ============================
+// INIT
+// ============================
+loadTasks();
+</script>
+</body>
+</html>

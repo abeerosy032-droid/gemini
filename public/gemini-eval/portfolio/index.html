@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portfolio | Gemini Eval</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">G.</div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#timeline">Timeline</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <h1 class="fade-in-up">Hi, I'm <span class="accent">Gemini</span></h1>
+            <h2 class="fade-in-up delay-1">Creative Full-Stack Developer</h2>
+            <p class="fade-in-up delay-2">Crafting elegant solutions to complex problems through code.</p>
+            <div class="hero-actions fade-in-up delay-3">
+                <a href="#projects" class="btn primary">View Work</a>
+                <a href="#contact" class="btn secondary">Get in Touch</a>
+            </div>
+        </div>
+        <div class="hero-avatar fade-in">
+            <!-- Animated SVG Avatar -->
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00f2fe;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#4facfe;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle cx="100" cy="100" r="90" fill="none" stroke="url(#grad)" stroke-width="4" stroke-dasharray="10 20">
+                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
+                <path d="M70,120 Q100,80 130,120" fill="none" stroke="url(#grad)" stroke-width="6" stroke-linecap="round">
+                    <animate attributeName="d" values="M70,120 Q100,80 130,120; M70,110 Q100,140 130,110; M70,120 Q100,80 130,120" dur="4s" repeatCount="indefinite"/>
+                </path>
+                <circle cx="85" cy="85" r="8" fill="#fff" />
+                <circle cx="115" cy="85" r="8" fill="#fff" />
+            </svg>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <h2 class="section-title">About Me</h2>
+        <div class="about-container">
+            <div class="about-text">
+                <p>I am a passionate developer with a keen eye for design and a drive for performance. I specialize in building responsive, accessible, and user-centric web applications. My approach blends technical expertise with creative problem-solving.</p>
+            </div>
+            <div class="about-skills">
+                <div class="skill-tags">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">TypeScript</span>
+                    <span class="tag">React</span>
+                    <span class="tag">Node.js</span>
+                    <span class="tag">Python</span>
+                    <span class="tag">CSS Animations</span>
+                    <span class="tag">UI/UX</span>
+                    <span class="tag">Git</span>
+                </div>
+                <div class="skill-bars">
+                    <div class="skill">
+                        <div class="skill-info">
+                            <span>Frontend</span>
+                            <span>95%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress" style="width: 95%;"></div></div>
+                    </div>
+                    <div class="skill">
+                        <div class="skill-info">
+                            <span>Backend</span>
+                            <span>85%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress" style="width: 85%;"></div></div>
+                    </div>
+                    <div class="skill">
+                        <div class="skill-info">
+                            <span>Design</span>
+                            <span>80%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress" style="width: 80%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects">
+        <h2 class="section-title">Selected Works</h2>
+        <div class="projects-grid">
+            <!-- Project 1 -->
+            <div class="project-card">
+                <div class="project-image" style="background: linear-gradient(45deg, #2a2a72, #009ffd);"></div>
+                <div class="project-content">
+                    <h3>Nexus E-Commerce</h3>
+                    <p>A modern e-commerce platform with real-time inventory and seamless checkout experience.</p>
+                    <div class="project-stack">
+                        <span>React</span><span>Node.js</span><span>Stripe</span>
+                    </div>
+                    <a href="#" class="project-link">View Source &rarr;</a>
+                </div>
+            </div>
+            <!-- Project 2 -->
+            <div class="project-card">
+                <div class="project-image" style="background: linear-gradient(45deg, #f83600, #f9d423);"></div>
+                <div class="project-content">
+                    <h3>Aura Dashboard</h3>
+                    <p>Analytics dashboard providing actionable insights through interactive data visualizations.</p>
+                    <div class="project-stack">
+                        <span>Vue.js</span><span>D3.js</span><span>Firebase</span>
+                    </div>
+                    <a href="#" class="project-link">View Source &rarr;</a>
+                </div>
+            </div>
+            <!-- Project 3 -->
+            <div class="project-card">
+                <div class="project-image" style="background: linear-gradient(45deg, #16a085, #f4d03f);"></div>
+                <div class="project-content">
+                    <h3>Zenith Task Manager</h3>
+                    <p>A minimalist task management tool designed to boost productivity without distractions.</p>
+                    <div class="project-stack">
+                        <span>Svelte</span><span>Tailwind</span><span>Supabase</span>
+                    </div>
+                    <a href="#" class="project-link">View Source &rarr;</a>
+                </div>
+            </div>
+            <!-- Project 4 -->
+            <div class="project-card">
+                <div class="project-image" style="background: linear-gradient(45deg, #8e2de2, #4a00e0);"></div>
+                <div class="project-content">
+                    <h3>Nova AI Assistant</h3>
+                    <p>A voice-enabled AI assistant interface for smart home control and task automation.</p>
+                    <div class="project-stack">
+                        <span>TypeScript</span><span>OpenAI API</span><span>WebRTC</span>
+                    </div>
+                    <a href="#" class="project-link">View Source &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="timeline-section">
+        <h2 class="section-title">Experience</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2024 - Present</span>
+                    <h3>Senior Frontend Engineer</h3>
+                    <h4>TechNova Inc.</h4>
+                    <p>Leading the frontend architecture for scalable SaaS products, mentoring junior developers, and establishing UI standards.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2021 - 2024</span>
+                    <h3>Full-Stack Developer</h3>
+                    <h4>Creative Solutions LLC</h4>
+                    <p>Developed full-stack web applications, integrated third-party APIs, and optimized database queries reducing load times by 40%.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2019 - 2021</span>
+                    <h3>Junior Web Developer</h3>
+                    <h4>StartUp Hub</h4>
+                    <p>Built responsive landing pages, maintained legacy codebases, and collaborated closely with the design team.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <h2 class="section-title">Let's Connect</h2>
+        <div class="contact-container">
+            <p class="contact-text">I'm currently open for new opportunities. Whether you have a question or just want to say hi, I'll try my best to get back to you!</p>
+            <form id="contact-form" class="contact-form" novalidate>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                    <span class="error-message">Please enter your name</span>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="john@example.com">
+                    <span class="error-message">Please enter a valid email address</span>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" required placeholder="Hello..."></textarea>
+                    <span class="error-message">Please enter your message</span>
+                </div>
+                <button type="submit" class="btn primary submit-btn">Send Message <span class="spinner"></span></button>
+                <div class="form-success">Message sent successfully!</div>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Gemini. Crafted with code and creativity.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

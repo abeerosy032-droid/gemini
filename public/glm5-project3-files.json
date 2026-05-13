@@ -1,0 +1,33 @@
+{
+  "backend": [
+    {"path": "/glm5-eval/project3/backend/app/Models/Task.php.txt", "icon": "🟣", "desc": "Model + Scopes", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Http/Controllers/TaskController.php.txt", "icon": "⚡", "desc": "6 Endpoints", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Http/Resources/TaskResource.php.txt", "icon": "📦", "desc": "Single Resource", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Http/Resources/TaskCollection.php.txt", "icon": "📦", "desc": "Collection + Meta", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Http/Requests/StoreTaskRequest.php.txt", "icon": "✅", "desc": "Create Validation", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Http/Requests/UpdateTaskRequest.php.txt", "icon": "✅", "desc": "Update Validation", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/routes/api.php.txt", "icon": "🛣️", "desc": "API Routes", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/database/migrations/0001_01_01_000001_create_tasks_table.php.txt", "icon": "🗄️", "desc": "Migration", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/database/factories/TaskFactory.php.txt", "icon": "🏭", "desc": "Factory", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/app/Providers/RouteServiceProvider.php.txt", "icon": "🔒", "desc": "Rate Limiting", "lang": "PHP"},
+    {"path": "/glm5-eval/project3/backend/config/cors.php.txt", "icon": "🌐", "desc": "CORS Config", "lang": "PHP"}
+  ],
+  "frontend": [
+    {"path": "/glm5-eval/project3/frontend/src/types/task.ts", "icon": "📘", "desc": "TypeScript Types", "lang": "TypeScript"},
+    {"path": "/glm5-eval/project3/frontend/src/utils/api.ts", "icon": "🔌", "desc": "Axios Instance", "lang": "TypeScript"},
+    {"path": "/glm5-eval/project3/frontend/src/reducers/taskReducer.ts", "icon": "⚙️", "desc": "useReducer — 9 Actions", "lang": "TypeScript"},
+    {"path": "/glm5-eval/project3/frontend/src/hooks/useTasks.ts", "icon": "🪝", "desc": "Custom Hook + Optimistic UI", "lang": "TypeScript"},
+    {"path": "/glm5-eval/project3/frontend/src/components/TaskItem.tsx", "icon": "📦", "desc": "Task Card Component", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/components/TaskForm.tsx", "icon": "📝", "desc": "Add Task Form", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/components/TaskFilters.tsx", "icon": "🔍", "desc": "Filter Component", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/components/Toast.tsx", "icon": "🔔", "desc": "Toast Notification", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/components/DarkModeToggle.tsx", "icon": "🌙", "desc": "Dark Mode Toggle", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/App.tsx", "icon": "🎯", "desc": "Main App Component", "lang": "TSX"},
+    {"path": "/glm5-eval/project3/frontend/src/styles.css", "icon": "🎨", "desc": "CSS Variables + Themes", "lang": "CSS"},
+    {"path": "/glm5-eval/project3/frontend/package.json", "icon": "📋", "desc": "Dependencies", "lang": "JSON"},
+    {"path": "/glm5-eval/project3/frontend/vite.config.ts", "icon": "⚡", "desc": "Vite Config", "lang": "TypeScript"}
+  ],
+  "tests": [
+    {"path": "/glm5-eval/project3/backend/tests/Feature/TaskApiTest.php.txt", "icon": "🧪", "desc": "5 Test Cases — RefreshDatabase", "lang": "PHP / PHPUnit"}
+  ]
+}

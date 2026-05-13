@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 مختبر تقييم GLM-5.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #9b59b6, #8e44ad, #6c3483);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(155, 89, 182, 0.2);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #9b59b6;
+        }
+
+        .stat-card .label {
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+
+        .questions-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .question-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .question-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            border-color: rgba(155, 89, 182, 0.3);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .question-category {
+            background: rgba(155, 89, 182, 0.2);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #9b59b6;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #ffffff;
+        }
+
+        .answer-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-right: 4px solid #9b59b6;
+        }
+
+        .answer-label {
+            font-weight: bold;
+            color: #9b59b6;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .answer-text {
+            line-height: 1.8;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+        }
+
+        .timestamp {
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .rating-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rating-label {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .rating-stars {
+            color: #ffd700;
+            font-size: 1.5em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #606060;
+        }
+
+        .empty-state .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 10px 20px;
+            }
+
+            .question-text {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 مختبر تقييم GLM-5.1</h1>
+            <p>أسئلة وأجوبة — تقييم أداء النموذج</p>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalQuestions">0</div>
+                    <div class="label">إجمالي الأسئلة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="avgRating">-</div>
+                    <div class="label">متوسط التقييم</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="questions-list" id="questionsList">
+            <div class="empty-state">
+                <div class="icon">⏳</div>
+                <p>جاري تحميل البيانات...</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadData()">🔄 تحديث</button>
+
+    <script>
+        const DATA_URL = '/glm-eval/responses.json';
+
+        async function loadData() {
+            try {
+                const response = await fetch(DATA_URL);
+                const data = await response.json();
+
+                renderQuestions(data);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('questionsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>فشل تحميل البيانات</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderQuestions(data) {
+            const list = document.getElementById('questionsList');
+
+            if (!data || data.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>لا توجد أسئلة بعد</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Update stats
+            document.getElementById('totalQuestions').textContent = data.length;
+
+            const ratedQuestions = data.filter(q => q.rating !== null && q.rating !== undefined);
+            if (ratedQuestions.length > 0) {
+                const avg = ratedQuestions.reduce((sum, q) => sum + q.rating, 0) / ratedQuestions.length;
+                document.getElementById('avgRating').textContent = avg.toFixed(1);
+            }
+
+            // Render questions (newest first)
+            const sortedData = [...data].reverse();
+
+            list.innerHTML = sortedData.map(q => `
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">سؤال #${q.id}</span>
+                        <span class="question-category">${q.category || 'عام'}</span>
+                    </div>
+                    <div class="question-text">${escapeHtml(q.question)}</div>
+                    <div class="answer-section">
+                        <div class="answer-label">
+                            <span>🤖</span>
+                            <span>إجابة GLM-5.1</span>
+                        </div>
+                        <div class="answer-text">${escapeHtml(q.answer)}</div>
+                    </div>
+                    ${q.rating ? `
+                        <div class="rating-section">
+                            <div class="rating-label">التقييم:</div>
+                            <div class="rating-stars">${'★'.repeat(q.rating)}${'☆'.repeat(5 - q.rating)}</div>
+                        </div>
+                    ` : ''}
+                    <div class="timestamp">${formatTimestamp(q.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+
+        // Initial load
+        loadData();
+    </script>
+</body>
+</html>

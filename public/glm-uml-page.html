@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 GLM-5.1 — Use Case Diagram</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #2d1b69, #1a1a3e);
+            padding: 25px 30px;
+            border-bottom: 3px solid #7c4dff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header h1 { color: #b388ff; font-size: 1.5em; }
+        .header .meta { color: #888; font-size: 0.85em; }
+        .badge {
+            display: inline-block;
+            background: #7c4dff33;
+            color: #b388ff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            padding: 15px 30px;
+            background: #111125;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            background: #2d1b69;
+            color: #b388ff;
+            border: 1px solid #7c4dff;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        .toolbar button:hover { background: #7c4dff; color: #fff; }
+        .toolbar button.active { background: #7c4dff; color: #fff; }
+        .diagram-container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+        }
+        .diagram-container img, .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px 30px;
+        }
+        .info-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .info-card h3 { color: #b388ff; font-size: 0.95em; margin-bottom: 8px; }
+        .info-card ul { list-style: none; font-size: 0.85em; line-height: 1.8; }
+        .info-card ul li::before { content: '→ '; color: #7c4dff; }
+        .back-link {
+            display: inline-block;
+            margin: 20px 30px;
+            color: #b388ff;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🧠 Use Case Diagram — نظام إدارة مطعم</h1>
+            <div class="meta">GLM-5.1 Evaluation | PlantUML | <span id="date">2026-05-10</span></div>
+        </div>
+        <span class="badge">UML 2.0</span>
+    </div>
+    
+    <div class="toolbar">
+        <button class="active" onclick="showDiagram('png')">🖼️ PNG</button>
+        <button onclick="showDiagram('svg')">📐 SVG</button>
+        <button onclick="window.open('/glm-uml.png','_blank')">🔗 فتح بحجم كامل</button>
+    </div>
+
+    <div class="diagram-container">
+        <img id="diagramImg" src="/glm-uml.png" alt="Restaurant Use Case Diagram" />
+    </div>
+
+    <div class="info-cards">
+        <div class="info-card">
+            <h3>👤 الممثلون (Actors)</h3>
+            <ul>
+                <li>الزبون (Customer)</li>
+                <li>النادل (Waiter)</li>
+                <li>الشيف (Chef)</li>
+                <li>المدير (Admin)</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h3>📦 الحزم (Packages)</h3>
+            <ul>
+                <li>إدارة القائمة</li>
+                <li>إدارة الطلبات</li>
+                <li>إدارة الحجوزات</li>
+                <li>المدفوعات</li>
+                <li>المطبخ</li>
+                <li>التقارير والإدارة</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h3>🔗 العلاقات</h3>
+            <ul>
+                <li>include: إنشاء طلب ← توليد فاتورة</li>
+                <li>include: دفع ← توليد فاتورة</li>
+                <li>include: تحضير ← إشعار جاهزية</li>
+                <li>include: إنشاء طلب ← استقبال طلب</li>
+                <li>extend: إلغاء طلب ← تتبع الطلب</li>
+                <li>extend: إلغاء حجز ← حجز طاولة</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h3>📊 إحصائيات</h3>
+            <ul>
+                <li>20 Use Case</li>
+                <li>4 Actors</li>
+                <li>6 Packages</li>
+                <li>6 علاقات هيكلية</li>
+            </ul>
+        </div>
+    </div>
+
+    <a class="back-link" href="/glm5-eval.html">← العودة لصفحة التقييم</a>
+
+    <script>
+        function showDiagram(type) {
+            const img = document.getElementById('diagramImg');
+            img.src = '/glm-uml.' + type;
+            document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

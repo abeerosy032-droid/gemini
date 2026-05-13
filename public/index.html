@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مختبر تقييم نماذج الذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
+        .model-card { transition: all 0.3s ease; }
+        .model-card:hover { transform: translateY(-8px); }
+        .glow-glm { box-shadow: 0 0 0 rgba(99,102,241,0); }
+        .glow-glm:hover { box-shadow: 0 8px 40px rgba(99,102,241,0.3); }
+        .glow-gemini { box-shadow: 0 0 0 rgba(16,185,129,0); }
+        .glow-gemini:hover { box-shadow: 0 8px 40px rgba(16,185,129,0.3); }
+        .glow-deepseek { box-shadow: 0 0 0 rgba(59,130,246,0); }
+        .glow-deepseek:hover { box-shadow: 0 8px 40px rgba(59,130,246,0.3); }
+        .glow-kimi { box-shadow: 0 0 0 rgba(168,85,247,0); }
+        .glow-kimi:hover { box-shadow: 0 8px 40px rgba(168,85,247,0.3); }
+        .pulse-dot { animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body class="bg-[#0a0a1a] text-white min-h-screen">
+
+    <!-- Nav -->
+    <div class="max-w-6xl mx-auto px-6 pt-6 flex justify-between items-center">
+        <a href="https://hormuz-site.pages.dev" target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-l from-cyan-500/15 to-purple-500/15 border border-cyan-500/30 rounded-full px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 transition-all">
+            🦞 مقارنة ZeroClaw · OpenClaw · Hermes →
+        </a>
+    </div>
+
+    <!-- Hero -->
+    <div class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-transparent to-purple-900/20"></div>
+        <div class="relative max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
+            <div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-gray-400 mb-6">
+                <span class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
+                يعمل الآن — 4 نماذج قيد التقييم
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-l from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                مختبر تقييم نماذج AI
+            </h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                نقارن أداء أقوى نماذج الذكاء الاصطناعي عبر مشاريع حقيقية.<br>
+                اختر النموذج لاستعراض نتائجه ومشاريعه.
+            </p>
+        </div>
+    </div>
+
+    <!-- Models Grid -->
+    <div class="max-w-6xl mx-auto px-6 pb-20">
+        <div class="grid gap-6 md:grid-cols-2">
+
+            <!-- GLM -->
+            <a href="/glm.html" class="model-card glow-glm block bg-gradient-to-br from-[#12122a] to-[#1a1a3e] border border-indigo-500/20 rounded-2xl p-8 group">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <div class="text-4xl mb-3">🧠</div>
+                        <h2 class="text-2xl font-bold text-indigo-300">GLM-5.1</h2>
+                        <p class="text-sm text-gray-500 mt-1">Zhipu AI / THUDM</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">8 مشاريع</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                        <span class="text-lg">📝</span>
+                        <div>
+                            <p class="text-sm font-medium text-indigo-200">منظومة نشر مقالات</p>
+                            <p class="text-xs text-gray-500">Laravel 11 + Blade + Policies + CRUD</p>
+                        </div>
+                        <span class="mr-auto px-2 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400">مكتمل ✅</span>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center gap-2 text-indigo-400 text-sm group-hover:gap-4 transition-all">
+                    <span>استعراض المشاريع</span>
+                    <span>←</span>
+                </div>
+            </a>
+
+            <!-- Gemini -->
+            <a href="/gemini.html" class="model-card glow-gemini block bg-gradient-to-br from-[#0d1f1a] to-[#0a2a2a] border border-emerald-500/20 rounded-2xl p-8 group">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <div class="text-4xl mb-3">💎</div>
+                        <h2 class="text-2xl font-bold text-emerald-300">Gemini</h2>
+                        <p class="text-sm text-gray-500 mt-1">Google DeepMind</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">8 مشاريع</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                        <span class="text-lg">👗</span>
+                        <div>
+                            <p class="text-sm font-medium text-emerald-200">متجر أزياء متكامل</p>
+                            <p class="text-xs text-gray-500">Vue 3 + Tailwind + UX</p>
+                        </div>
+                        <span class="mr-auto px-2 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400">مكتمل ✅</span>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center gap-2 text-emerald-400 text-sm group-hover:gap-4 transition-all">
+                    <span>استعراض المشاريع</span>
+                    <span>←</span>
+                </div>
+            </a>
+
+            <!-- DeepSeek -->
+            <a href="/deepseek.html" class="model-card glow-deepseek block bg-gradient-to-br from-[#0d1a2a] to-[#0a1a3e] border border-blue-500/20 rounded-2xl p-8 group">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <div class="text-4xl mb-3">🔍</div>
+                        <h2 class="text-2xl font-bold text-blue-300">DeepSeek</h2>
+                        <p class="text-sm text-gray-500 mt-1">DeepSeek AI</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">0 مشروع</span>
+                </div>
+                <div class="p-4 bg-white/5 rounded-xl text-center">
+                    <p class="text-gray-500 text-sm">⏳ في انتظار التقييم</p>
+                </div>
+                <div class="mt-6 flex items-center gap-2 text-blue-400/50 text-sm">
+                    <span>لم يبدأ بعد</span>
+                </div>
+            </a>
+
+            <!-- Kimi -->
+            <a href="/kimi.html" class="model-card glow-kimi block bg-gradient-to-br from-[#1a0d2a] to-[#2a0a3e] border border-purple-500/20 rounded-2xl p-8 group">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <div class="text-4xl mb-3">🌙</div>
+                        <h2 class="text-2xl font-bold text-purple-300">Kimi</h2>
+                        <p class="text-sm text-gray-500 mt-1">Moonshot AI</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">1 مشروع</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                        <span class="text-lg">🎮</span>
+                        <div>
+                            <p class="text-sm font-medium text-purple-200">لعبة الاختبار التعليمي</p>
+                            <p class="text-xs text-gray-500">HTML/CSS/JS + Quiz + Confetti</p>
+                        </div>
+                        <span class="mr-auto px-2 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400">مكتمل ✅</span>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center gap-2 text-purple-400 text-sm group-hover:gap-4 transition-all">
+                    <span>استعراض المشاريع</span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <footer class="border-t border-white/5 py-6 text-center text-sm text-gray-600">
+        مختبر تقييم نماذج AI — 2026
+    </footer>
+
+</body>
+</html>

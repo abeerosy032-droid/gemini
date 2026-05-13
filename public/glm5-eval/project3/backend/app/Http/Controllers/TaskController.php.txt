@@ -1,0 +1,133 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\TaskCollection;
+use App\Http\Resources\TaskResource;
+use App\Models\Task;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class TaskController extends Controller
+{
+    /**
+     * GET /api/tasks — List all tasks with filtering & pagination.
+     */
+    public function index(Request $request): TaskCollection
+    {
+        $query = $request->user()->tasks()->latest();
+
+        // ── Filtering ──
+        if ($request->filled('status')) {
+            $query->byStatus($request->query('status'));
+        }
+
+        if ($request->filled('priority')) {
+            $query->byPriority($request->query('priority'));
+        }
+
+        if ($request->filled('due')) {
+            match ($request->query('due')) {
+                'today'      => $query->dueToday(),
+                'week'       => $query->dueThisWeek(),
+                'overdue'    => $query->overdue(),
+                default      => null,
+            };
+        }
+
+        // ── Search ──
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $tasks = $query->paginate($request->query('per_page', 15));
+
+        return new TaskCollection($tasks);
+    }
+
+    /**
+     * POST /api/tasks — Create a new task.
+     */
+    public function store(StoreTaskRequest $request): JsonResponse
+    {
+        $task = $request->user()->tasks()->create($request->validated());
+
+        return response()->json([
+            'message' => 'تم إنشاء المهمة بنجاح',
+            'data'    => new TaskResource($task),
+        ], 201);
+    }
+
+    /**
+     * GET /api/tasks/{task} — Show a single task.
+     */
+    public function show(Request $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($request, $task);
+
+        return response()->json([
+            'data' => new TaskResource($task),
+        ]);
+    }
+
+    /**
+     * PUT/PATCH /api/tasks/{task} — Update a task.
+     */
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($request, $task);
+
+        $task->update($request->validated());
+
+        return response()->json([
+            'message' => 'تم تحديث المهمة بنجاح',
+            'data'    => new TaskResource($task->fresh()),
+        ]);
+    }
+
+    /**
+     * DELETE /api/tasks/{task} — Delete a task.
+     */
+    public function destroy(Request $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($request, $task);
+
+        $task->delete();
+
+        return response()->json([
+            'message' => 'تم حذف المهمة بنجاح',
+        ], 200);
+    }
+
+    /**
+     * PATCH /api/tasks/{task}/toggle — Toggle task status.
+     */
+    public function toggle(Request $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($request, $task);
+
+        $task->status = $task->status === 'done' ? 'pending' : 'done';
+        $task->save();
+
+        return response()->json([
+            'message' => $task->status === 'done' ? 'تم إكمال المهمة' : 'تم إلغاء إكمال المهمة',
+            'data'    => new TaskResource($task->fresh()),
+        ]);
+    }
+
+    /**
+     * Ensure the authenticated user owns the task.
+     */
+    private function authorizeTask(Request $request, Task $task): void
+    {
+        if ($request->user()->id !== $task->user_id) {
+            abort(403, 'ليس لديك صلاحية للوصول لهذه المهمة');
+        }
+    }
+}

@@ -1,0 +1,203 @@
+[
+  {
+    "type": "dir",
+    "path": "app"
+  },
+  {
+    "type": "dir",
+    "path": "app/Http"
+  },
+  {
+    "type": "dir",
+    "path": "app/Http/Controllers"
+  },
+  {
+    "type": "dir",
+    "path": "app/Http/Middleware"
+  },
+  {
+    "type": "dir",
+    "path": "app/Http/Requests"
+  },
+  {
+    "type": "dir",
+    "path": "app/Models"
+  },
+  {
+    "type": "dir",
+    "path": "app/Policies"
+  },
+  {
+    "type": "dir",
+    "path": "app/Providers"
+  },
+  {
+    "type": "dir",
+    "path": "database"
+  },
+  {
+    "type": "dir",
+    "path": "database/factories"
+  },
+  {
+    "type": "dir",
+    "path": "database/migrations"
+  },
+  {
+    "type": "dir",
+    "path": "database/seeders"
+  },
+  {
+    "type": "dir",
+    "path": "resources"
+  },
+  {
+    "type": "dir",
+    "path": "resources/views"
+  },
+  {
+    "type": "dir",
+    "path": "resources/views/components"
+  },
+  {
+    "type": "dir",
+    "path": "resources/views/dashboard"
+  },
+  {
+    "type": "dir",
+    "path": "resources/views/layouts"
+  },
+  {
+    "type": "dir",
+    "path": "resources/views/posts"
+  },
+  {
+    "type": "dir",
+    "path": "routes"
+  },
+  {
+    "type": "file",
+    "path": "EVALUATION.md",
+    "name": "EVALUATION.md"
+  },
+  {
+    "type": "file",
+    "path": "app/Http/Controllers/PostController.php",
+    "name": "PostController.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Http/Middleware/EnsureDashboardAccess.php",
+    "name": "EnsureDashboardAccess.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Http/Requests/StorePostRequest.php",
+    "name": "StorePostRequest.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Http/Requests/UpdatePostRequest.php",
+    "name": "UpdatePostRequest.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Models/Post.php",
+    "name": "Post.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Models/Tag.php",
+    "name": "Tag.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Models/User.php",
+    "name": "User.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Policies/PostPolicy.php",
+    "name": "PostPolicy.php"
+  },
+  {
+    "type": "file",
+    "path": "app/Providers/AuthServiceProvider.php",
+    "name": "AuthServiceProvider.php"
+  },
+  {
+    "type": "file",
+    "path": "database/factories/PostFactory.php",
+    "name": "PostFactory.php"
+  },
+  {
+    "type": "file",
+    "path": "database/migrations/2024_01_01_000001_create_posts_table.php",
+    "name": "2024_01_01_000001_create_posts_table.php"
+  },
+  {
+    "type": "file",
+    "path": "database/migrations/2024_01_01_000002_create_tags_table.php",
+    "name": "2024_01_01_000002_create_tags_table.php"
+  },
+  {
+    "type": "file",
+    "path": "database/migrations/2024_01_01_000003_create_post_tag_pivot.php",
+    "name": "2024_01_01_000003_create_post_tag_pivot.php"
+  },
+  {
+    "type": "file",
+    "path": "database/seeders/BlogSeeder.php",
+    "name": "BlogSeeder.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/components/alert.blade.php",
+    "name": "alert.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/components/post-card.blade.php",
+    "name": "post-card.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/components/tag-badge.blade.php",
+    "name": "tag-badge.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/dashboard/create.blade.php",
+    "name": "create.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/dashboard/edit.blade.php",
+    "name": "edit.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/dashboard/posts.blade.php",
+    "name": "posts.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/layouts/app.blade.php",
+    "name": "app.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/posts/index.blade.php",
+    "name": "index.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "resources/views/posts/show.blade.php",
+    "name": "show.blade.php"
+  },
+  {
+    "type": "file",
+    "path": "routes/web.php",
+    "name": "web.php"
+  }
+]

@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "الزبون" as Customer
+actor "النادل" as Waiter
+actor "الطاهي" as Chef
+actor "مدير النظام" as Admin
+
+rectangle "نظام إدارة المطعم (Laravel)" {
+  usecase "تصفح قائمة الطعام" as UC1
+  usecase "إنشاء طلب جديد" as UC2
+  usecase "تعديل الطلب" as UC3
+  usecase "إلغاء الطلب" as UC4
+  usecase "تتبع حالة الطلب" as UC5
+  usecase "الدفع وإصدار الفاتورة" as UC6
+  usecase "إدارة الطاولات" as UC7
+  usecase "تأكيد استلام الطلب" as UC8
+  usecase "إدارة قائمة الطعام" as UC9
+  usecase "إدارة الموظفين" as UC10
+  usecase "عرض التقارير والإحصائيات" as UC11
+  
+  Customer --> UC1
+  Customer --> UC2
+  Customer --> UC3
+  Customer --> UC4
+  Customer --> UC5
+  Customer --> UC6
+  
+  Waiter --> UC2
+  Waiter --> UC5
+  Waiter --> UC6
+  Waiter --> UC7
+  
+  Chef --> UC8
+  Chef --> UC5
+  
+  Admin --> UC9
+  Admin --> UC10
+  Admin --> UC11
+}
+
+@enduml

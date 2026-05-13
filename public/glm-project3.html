@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 GLM-5.1 — Project 3: Task Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0d1a; --surface: #1a1a2e; --border: #2a2a4a;
+            --text: #e0e0e0; --muted: #888; --primary: #7c4dff;
+            --success: #4caf50; --warning: #ff9800; --danger: #f44336;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+        
+        .header {
+            background: linear-gradient(135deg, #2d1b69, #1a1a3e);
+            padding: 25px 30px;
+            border-bottom: 3px solid var(--primary);
+        }
+        .header h1 { color: #b388ff; font-size: 1.5em; margin-bottom: 5px; }
+        .header .subtitle { color: var(--muted); font-size: 0.85em; }
+        .badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 600;
+        }
+        .badge-purple { background: #7c4dff33; color: #b388ff; }
+        .badge-green { background: #4caf5033; color: #4caf50; }
+        .badge-blue { background: #2196f333; color: #64b5f6; }
+        .badge-orange { background: #ff980033; color: #ff9800; }
+
+        .stats {
+            display: flex; gap: 20px; padding: 20px 30px; flex-wrap: wrap;
+            background: #111125;
+        }
+        .stat {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 120px;
+        }
+        .stat .num { font-size: 1.8em; font-weight: bold; color: #b388ff; }
+        .stat .label { font-size: 0.8em; color: var(--muted); margin-top: 3px; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px 30px; }
+        
+        /* Tabs */
+        .tabs {
+            display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 12px 20px; cursor: pointer; color: var(--muted);
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+            white-space: nowrap; font-size: 0.9em; transition: all 0.2s;
+            background: none; border-top: none; border-left: none; border-right: none;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: #b388ff; border-bottom-color: var(--primary); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* File viewer */
+        .file-tree {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; margin-bottom: 16px;
+        }
+        .file-tree h3 { color: #b388ff; font-size: 0.95em; margin-bottom: 10px; }
+        .file-item {
+            padding: 8px 12px; cursor: pointer; border-radius: 6px;
+            font-family: monospace; font-size: 0.85em; transition: all 0.15s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .file-item:hover { background: rgba(124,77,255,0.1); }
+        .file-item .icon { margin-left: 8px; }
+        .file-item .size { color: var(--muted); font-size: 0.8em; }
+
+        /* Code preview */
+        .code-preview {
+            background: #0a0a15; border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden; margin-top: 16px;
+        }
+        .code-header {
+            background: #111125; padding: 10px 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .code-header .filename { color: #b388ff; font-family: monospace; font-size: 0.85em; }
+        .code-header .lang { color: var(--muted); font-size: 0.75em; }
+        .code-body {
+            padding: 16px; overflow-x: auto; max-height: 500px; overflow-y: auto;
+            font-family: 'Fira Code', monospace; font-size: 0.82em; line-height: 1.7;
+            white-space: pre; color: #c0c0c0; direction: ltr; text-align: left;
+        }
+
+        /* Checklist */
+        .checklist { list-style: none; }
+        .checklist li {
+            padding: 8px 0; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px; font-size: 0.9em;
+        }
+        .checklist li:last-child { border: none; }
+        .check-yes { color: var(--success); font-weight: bold; }
+        .check-no { color: var(--danger); font-weight: bold; }
+
+        /* Architecture */
+        .arch-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 20px; margin-bottom: 16px;
+        }
+        .arch-box h3 { color: #b388ff; margin-bottom: 12px; }
+        .arch-flow {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; padding: 20px; flex-wrap: wrap; font-size: 0.9em;
+        }
+        .arch-node {
+            background: #12122a; border: 2px solid var(--primary);
+            border-radius: 10px; padding: 12px 20px; text-align: center;
+        }
+        .arch-node.highlight { border-color: var(--success); background: #1a2e1a; }
+        .arch-arrow { color: var(--primary); font-size: 1.5em; }
+
+        .back-link {
+            display: inline-block; margin: 20px 30px;
+            color: #b388ff; text-decoration: none; font-size: 0.9em;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 المشروع 3: تطبيق إدارة مهام — Laravel API + React</h1>
+        <div class="subtitle">GLM-5.1 Evaluation | Full-Stack Task Manager | 20+ ملف</div>
+        <div class="badges">
+            <span class="badge badge-purple">Laravel 11</span>
+            <span class="badge badge-blue">React + TypeScript</span>
+            <span class="badge badge-green">Sanctum Auth</span>
+            <span class="badge badge-orange">Vite</span>
+            <span class="badge badge-purple">Optimistic UI</span>
+            <span class="badge badge-green">Dark Mode</span>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><div class="num">20+</div><div class="label">ملف</div></div>
+        <div class="stat"><div class="num">6</div><div class="label">API Endpoints</div></div>
+        <div class="stat"><div class="num">5</div><div class="label">Unit Tests</div></div>
+        <div class="stat"><div class="num">✅</div><div class="label">مكتمل</div></div>
+    </div>
+
+    <div class="container">
+        <!-- Architecture Overview -->
+        <div class="arch-box">
+            <h3>🏗️ البنية المعمارية</h3>
+            <div class="arch-flow">
+                <div class="arch-node">📱 React + TS<br><small>Vite Dev Server</small></div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">🔌 Axios + CORS<br><small>withCredentials</small></div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node highlight">🔒 Sanctum<br><small>SPA Auth</small></div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">⚡ Laravel API<br><small>Resources + Policies</small></div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">🗄️ MySQL<br><small>Eloquent ORM</small></div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('backend')">⚙️ Backend — Laravel</button>
+            <button class="tab" onclick="showTab('frontend')">🎨 Frontend — React</button>
+            <button class="tab" onclick="showTab('tests')">🧪 Tests</button>
+            <button class="tab" onclick="showTab('checklist')">✅ Checklist</button>
+        </div>
+
+        <!-- Backend Tab -->
+        <div id="tab-backend" class="tab-content active">
+            <div class="file-tree">
+                <h3>📁 هيكل الـ Backend</h3>
+                <div id="backend-files"></div>
+            </div>
+            <div id="backend-code" class="code-preview" style="display:none">
+                <div class="code-header">
+                    <span class="filename" id="backend-filename"></span>
+                    <span class="lang" id="backend-lang"></span>
+                </div>
+                <pre class="code-body" id="backend-code-body"></pre>
+            </div>
+        </div>
+
+        <!-- Frontend Tab -->
+        <div id="tab-frontend" class="tab-content">
+            <div class="file-tree">
+                <h3>📁 هيكل الـ Frontend</h3>
+                <div id="frontend-files"></div>
+            </div>
+            <div id="frontend-code" class="code-preview" style="display:none">
+                <div class="code-header">
+                    <span class="filename" id="frontend-filename"></span>
+                    <span class="lang" id="frontend-lang"></span>
+                </div>
+                <pre class="code-body" id="frontend-code-body"></pre>
+            </div>
+        </div>
+
+        <!-- Tests Tab -->
+        <div id="tab-tests" class="tab-content">
+            <div class="file-tree">
+                <h3>🧪 اختبارات API — 5 Test Cases</h3>
+                <div id="test-files"></div>
+            </div>
+            <div id="test-code" class="code-preview" style="display:none">
+                <div class="code-header">
+                    <span class="filename" id="test-filename"></span>
+                    <span class="lang">PHP / PHPUnit</span>
+                </div>
+                <pre class="code-body" id="test-code-body"></pre>
+            </div>
+
+            <div class="arch-box" style="margin-top:20px">
+                <h3>📊 تغطية الاختبارات</h3>
+                <ul class="checklist">
+                    <li><span class="check-yes">✓</span> GET /api/tasks — عرض مهام المستخدم فقط (assertOk + assertJsonStructure)</li>
+                    <li><span class="check-yes">✓</span> POST /api/tasks — إنشاء مهمة ببيانات صحيحة → 201 Created</li>
+                    <li><span class="check-yes">✓</span> POST /api/tasks — بيانات خاطئة → 422 Unprocessable Entity</li>
+                    <li><span class="check-yes">✓</span> PATCH /api/tasks/{id}/toggle — تبديل الحالة pending ↔ done</li>
+                    <li><span class="check-yes">✓</span> DELETE /api/tasks/{id} — حذف مهمة propres + منع حذف مهمة غريبة → 403</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Checklist Tab -->
+        <div id="tab-checklist" class="tab-content">
+            <div class="arch-box">
+                <h3>⚙️ Backend Requirements</h3>
+                <ul class="checklist">
+                    <li><span class="check-yes">✓</span> API Resources: TaskResource + TaskCollection</li>
+                    <li><span class="check-yes">✓</span> Authentication: Laravel Sanctum (SPA tokens)</li>
+                    <li><span class="check-yes">✓</span> GET /tasks — قائمة مع Pagination + Meta</li>
+                    <li><span class="check-yes">✓</span> POST /tasks — إنشاء مع Validation → 201</li>
+                    <li><span class="check-yes">✓</span> PUT /tasks/{id} — تحديث كامل</li>
+                    <li><span class="check-yes">✓</span> DELETE /tasks/{id} — حذف مع Authorization</li>
+                    <li><span class="check-yes">✓</span> PATCH /tasks/{id}/toggle — تبديل الحالة</li>
+                    <li><span class="check-yes">✓</span> Filtering: ?status=done&priority=high&due=today</li>
+                    <li><span class="check-yes">✓</span> Rate Limiting: 60/min auth, 10/min guest</li>
+                    <li><span class="check-yes">✓</span> 5 Unit Tests مع RefreshDatabase</li>
+                    <li><span class="check-yes">✓</span> Form Requests: StoreTaskRequest + UpdateTaskRequest</li>
+                    <li><span class="check-yes">✓</span> Scopes: byStatus, byPriority, dueToday, overdue</li>
+                </ul>
+            </div>
+            <div class="arch-box">
+                <h3>🎨 Frontend Requirements</h3>
+                <ul class="checklist">
+                    <li><span class="check-yes">✓</span> Vite + React Setup (بدون CRA)</li>
+                    <li><span class="check-yes">✓</span> TypeScript — أنواع Task, TaskFormData, TaskFilters</li>
+                    <li><span class="check-yes">✓</span> useReducer — TaskReducer مع 9 action types</li>
+                    <li><span class="check-yes">✓</span> Custom Hook: useTasks() — fetch/create/update/delete/toggle</li>
+                    <li><span class="check-yes">✓</span> Optimistic UI — ADD/UPDATE/DELETE/TOGGLE مع Revert عند الفشل</li>
+                    <li><span class="check-yes">✓</span> Error Handling — Toast notification عند فشل الطلب</li>
+                    <li><span class="check-yes">✓</span> Dark Mode — CSS Variables + toggle + localStorage</li>
+                    <li><span class="check-yes">✓</span> axios instance — baseURL + withCredentials + interceptors</li>
+                    <li><span class="check-yes">✓</span> CORS configured — localhost:5173</li>
+                    <li><span class="check-yes">✓</span> Loading / Error / Empty states</li>
+                    <li><span class="check-yes">✓</span> Pagination controls</li>
+                    <li><span class="check-yes">✓</span> Search + Multi-filter UI</li>
+                    <li><span class="check-yes">✓</span> Confirm delete pattern</li>
+                </ul>
+            </div>
+            <div class="arch-box">
+                <h3>🔍 REST Conventions Check</h3>
+                <ul class="checklist">
+                    <li><span class="check-yes">✓</span> 201 Created — عند POST ناجح</li>
+                    <li><span class="check-yes">✓</span> 200 OK — GET, PUT, PATCH, DELETE</li>
+                    <li><span class="check-yes">✓</span> 422 Unprocessable — Validation failure</li>
+                    <li><span class="check-yes">✓</span> 403 Forbidden — Unauthorized access</li>
+                    <li><span class="check-yes">✓</span> JSON response structure — data + meta + links</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <a class="back-link" href="/glm">← العودة لصفحة GLM</a>
+
+    <script>
+    // All source files embedded
+    const BACKEND_FILES = {};
+    const FRONTEND_FILES = {};
+
+    function showTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // Load files from the server
+    async function loadFileList() {
+        try {
+            const res = await fetch('/glm5-project3-files.json');
+            if (!res.ok) return;
+            const data = await res.json();
+            renderFileList('backend-files', data.backend || [], 'backend');
+            renderFileList('frontend-files', data.frontend || [], 'frontend');
+            renderFileList('test-files', data.tests || [], 'test');
+        } catch(e) {}
+    }
+
+    function renderFileList(containerId, files, section) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = files.map(f => `
+            <div class="file-item" onclick="loadCode('${section}', '${f.path}', '${f.lang || ''}')">
+                <span><span class="icon">${f.icon || '📄'}</span> ${f.path}</span>
+                <span class="size">${f.desc || ''}</span>
+            </div>
+        `).join('');
+    }
+
+    async function loadCode(section, path, lang) {
+        const el = document.getElementById(section + '-code');
+        const body = document.getElementById(section + '-code-body');
+        const nameEl = document.getElementById(section + '-filename');
+        const langEl = document.getElementById(section + '-lang');
+        
+        try {
+            const res = await fetch(path);
+            const text = await res.text();
+            body.textContent = text;
+            nameEl.textContent = path.split('/').pop();
+            langEl.textContent = lang;
+            el.style.display = 'block';
+        } catch(e) {
+            body.textContent = 'Error loading file';
+        }
+    }
+
+    loadFileList();
+    </script>
+</body>
+</html>
